@@ -63,7 +63,14 @@ export default function AdminPage() {
 
   const fetchData = async () => {
     try {
+      console.log("Fetching CMS data...")
       const response = await fetch("/api/cms")
+      console.log("API response status:", response.status)
+      
+      if (!response.ok) {
+        throw new Error(`API responded with status: ${response.status}`)
+      }
+      
       const result = await response.json()
       console.log("CMS Data loaded:", result)
       console.log("Home hero data:", result?.home?.hero)
@@ -72,7 +79,7 @@ export default function AdminPage() {
       console.error("Error fetching data:", error)
       toast({
         title: "❌ Error",
-        description: "Failed to load CMS data",
+        description: `Failed to load CMS data: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       })
     } finally {

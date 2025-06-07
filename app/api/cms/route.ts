@@ -560,11 +560,16 @@ export async function GET() {
     }
 
     // If no content in KV, return default and save it
-    await kv.set(CMS_KEY, defaultContent)
+    try {
+      await kv.set(CMS_KEY, defaultContent)
+    } catch (kvError) {
+      console.error("KV set error:", kvError)
+      // Continue anyway, just return default content
+    }
     return NextResponse.json(defaultContent)
   } catch (error) {
     console.error("Error fetching CMS content:", error)
-    // If KV fails, return default content
+    // If KV fails completely, return default content
     return NextResponse.json(defaultContent)
   }
 }
@@ -574,9 +579,13 @@ export async function POST(request: NextRequest) {
     const content = await request.json()
 
     // Save to KV store
-    await kv.set(CMS_KEY, content)
-
-    return NextResponse.json({ success: true })
+    try {
+      await kv.set(CMS_KEY, content)
+      return NextResponse.json({ success: true })
+    } catch (kvError) {
+      console.error("KV save error:", kvError)
+      return NextResponse.json({ error: "KV storage not available", success: false }, { status: 500 })
+    }
   } catch (error) {
     console.error("Error saving CMS content:", error)
     return NextResponse.json({ error: "Failed to save content" }, { status: 500 })
