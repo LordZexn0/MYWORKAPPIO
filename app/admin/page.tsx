@@ -12,6 +12,41 @@ import { Toaster } from "@/components/ui/toaster"
 import { Save, FileText, Info, ImageIcon, Users } from "lucide-react"
 
 interface CMSData {
+  site?: {
+    name?: string
+    logo?: string
+    description?: string
+    tagline?: string
+    contact?: any
+  }
+  navigation?: any
+  home?: {
+    hero?: {
+      title?: string
+      subtitle?: string
+      description?: string
+      primaryButton?: string
+      secondaryButton?: string
+    }
+    stats?: any[]
+    overview?: any
+    cta?: any
+  }
+  services?: {
+    hero?: any
+    items?: any[]
+    cta?: any
+  }
+  whyUs?: any
+  caseStudies?: any
+  blog?: {
+    hero?: any
+    posts?: any[]
+    newsletter?: any
+  }
+  contact?: any
+  footer?: any
+  supplyChain?: any
   [key: string]: any
 }
 
@@ -97,9 +132,9 @@ export default function AdminPage() {
 
         const newData = { ...data }
 
-        if (section === "services" && typeof index === "number") {
+        if (section === "services" && typeof index === "number" && newData.services?.items) {
           newData.services.items[index].image = imageUrl
-        } else if (section === "blog" && typeof index === "number") {
+        } else if (section === "blog" && typeof index === "number" && newData.blog?.posts) {
           newData.blog.posts[index].image = imageUrl
         }
 
