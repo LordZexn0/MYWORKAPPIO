@@ -65,6 +65,8 @@ export default function AdminPage() {
     try {
       const response = await fetch("/api/cms")
       const result = await response.json()
+      console.log("CMS Data loaded:", result)
+      console.log("Home hero data:", result?.home?.hero)
       setData(result)
     } catch (error) {
       console.error("Error fetching data:", error)
@@ -216,6 +218,14 @@ export default function AdminPage() {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Debug Info - Remove this after testing */}
+        <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded">
+          <h3 className="font-bold">Debug Info:</h3>
+          <p>Data loaded: {data ? "Yes" : "No"}</p>
+          <p>Home.hero.title: {data?.home?.hero?.title || "Not found"}</p>
+          <p>Site.name: {data?.site?.name || "Not found"}</p>
+        </div>
+        
         <Tabs defaultValue="hero" className="space-y-6">
           <TabsList className="grid w-full grid-cols-5 bg-white rounded-xl shadow-sm border p-1">
             <TabsTrigger
