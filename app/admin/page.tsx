@@ -225,12 +225,10 @@ export default function AdminPage() {
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Debug Info - Remove this after testing */}
-        <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded">
-          <h3 className="font-bold">Debug Info:</h3>
-          <p>Data loaded: {data ? "Yes" : "No"}</p>
-          <p>Home.hero.title: {data?.home?.hero?.title || "Not found"}</p>
-          <p>Site.name: {data?.site?.name || "Not found"}</p>
+        {/* Status Info */}
+        <div className="mb-4 p-4 bg-green-100 border border-green-400 rounded">
+          <h3 className="font-bold text-green-800">✅ CMS Data Loaded Successfully</h3>
+          <p className="text-green-700">Ready to edit content below</p>
         </div>
         
         <Tabs defaultValue="hero" className="space-y-6">
@@ -278,13 +276,13 @@ export default function AdminPage() {
           </TabsList>
 
           <TabsContent value="hero">
-            <Card>
-              <CardHeader>
-                <CardTitle>🏠 Hero Section</CardTitle>
+            <Card className="border-2 border-blue-200">
+              <CardHeader className="bg-blue-50">
+                <CardTitle className="text-blue-800">🏠 Hero Section - Homepage Banner</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6 p-6">
                 <div>
-                  <Label htmlFor="hero-title">Title</Label>
+                  <Label htmlFor="hero-title" className="text-lg font-semibold">Main Title</Label>
                   <Input
                     id="hero-title"
                     value={data?.home?.hero?.title || ""}
@@ -296,10 +294,12 @@ export default function AdminPage() {
                       setData(newData)
                     }}
                     placeholder="Main hero title"
+                    className="mt-2 p-3 text-lg"
                   />
+                  <p className="text-sm text-gray-600 mt-1">Current: {data?.home?.hero?.title}</p>
                 </div>
                 <div>
-                  <Label htmlFor="hero-subtitle">Subtitle</Label>
+                  <Label htmlFor="hero-subtitle" className="text-lg font-semibold">Subtitle</Label>
                   <Textarea
                     id="hero-subtitle"
                     value={data?.home?.hero?.subtitle || ""}
@@ -312,7 +312,27 @@ export default function AdminPage() {
                     }}
                     placeholder="Hero subtitle/description"
                     rows={3}
+                    className="mt-2 p-3"
                   />
+                  <p className="text-sm text-gray-600 mt-1">Current: {data?.home?.hero?.subtitle}</p>
+                </div>
+                <div>
+                  <Label htmlFor="hero-description" className="text-lg font-semibold">Description</Label>
+                  <Textarea
+                    id="hero-description"
+                    value={data?.home?.hero?.description || ""}
+                    onChange={(e) => {
+                      const newData = { ...data }
+                      if (!newData.home) newData.home = {}
+                      if (!newData.home.hero) newData.home.hero = {}
+                      newData.home.hero.description = e.target.value
+                      setData(newData)
+                    }}
+                    placeholder="Hero description text"
+                    rows={4}
+                    className="mt-2 p-3"
+                  />
+                  <p className="text-sm text-gray-600 mt-1">Current: {data?.home?.hero?.description}</p>
                 </div>
               </CardContent>
             </Card>
@@ -337,13 +357,13 @@ export default function AdminPage() {
           </TabsContent>
 
           <TabsContent value="site">
-            <Card>
-              <CardHeader>
-                <CardTitle>🌐 Site Information</CardTitle>
+            <Card className="border-2 border-green-200">
+              <CardHeader className="bg-green-50">
+                <CardTitle className="text-green-800">🌐 Site Information - General Settings</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6 p-6">
                 <div>
-                  <Label htmlFor="site-name">Site Name</Label>
+                  <Label htmlFor="site-name" className="text-lg font-semibold">Site Name</Label>
                   <Input
                     id="site-name"
                     value={data?.site?.name || ""}
@@ -354,10 +374,12 @@ export default function AdminPage() {
                       setData(newData)
                     }}
                     placeholder="Website name"
+                    className="mt-2 p-3 text-lg"
                   />
+                  <p className="text-sm text-gray-600 mt-1">Current: {data?.site?.name}</p>
                 </div>
                 <div>
-                  <Label htmlFor="site-description">Description</Label>
+                  <Label htmlFor="site-description" className="text-lg font-semibold">Site Description</Label>
                   <Textarea
                     id="site-description"
                     value={data?.site?.description || ""}
@@ -368,8 +390,26 @@ export default function AdminPage() {
                       setData(newData)
                     }}
                     placeholder="Website description"
-                    rows={3}
+                    rows={4}
+                    className="mt-2 p-3"
                   />
+                  <p className="text-sm text-gray-600 mt-1">Current: {data?.site?.description}</p>
+                </div>
+                <div>
+                  <Label htmlFor="site-tagline" className="text-lg font-semibold">Tagline</Label>
+                  <Input
+                    id="site-tagline"
+                    value={data?.site?.tagline || ""}
+                    onChange={(e) => {
+                      const newData = { ...data }
+                      if (!newData.site) newData.site = {}
+                      newData.site.tagline = e.target.value
+                      setData(newData)
+                    }}
+                    placeholder="Site tagline"
+                    className="mt-2 p-3"
+                  />
+                  <p className="text-sm text-gray-600 mt-1">Current: {data?.site?.tagline}</p>
                 </div>
               </CardContent>
             </Card>
