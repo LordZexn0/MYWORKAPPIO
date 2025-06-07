@@ -7,21 +7,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import { Save, FileText, Info, ImageIcon, Users } from "lucide-react"
 
 interface CMSData {
-  home: {
-    hero: {
-      title: string
-      subtitle: string
-    }
-  }
-  site: {
-    name: string
-    description: string
-  }
+  [key: string]: any
 }
 
 export default function AdminPage() {
