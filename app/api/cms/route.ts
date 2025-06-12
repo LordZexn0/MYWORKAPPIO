@@ -330,51 +330,16 @@ const defaultContent = {
   },
   blog: {
     hero: {
-      title: "Latest Insights & Updates",
-      description: "Stay informed about the latest trends, best practices, and innovations in logistics and supply chain management.",
+      title: "Latest Updates & Insights",
+      description: "Stay informed with our latest articles, industry insights, and company updates.",
     },
-    posts: [
-      {
-        id: 1,
-        title: "The Future of Supply Chain Management",
-        slug: "future-of-supply-chain-management",
-        author: "John Smith",
-        date: "2024-03-15",
-        category: "Industry Trends",
-        image: "/images/blog/supply-chain-future.jpg",
-        excerpt: "Discover how AI, IoT, and automation are reshaping the future of supply chain management and logistics operations.",
-        content: "As we move further into 2024, the supply chain industry continues to evolve at an unprecedented pace...",
-        tags: ["Supply Chain", "AI", "IoT", "Automation"],
-      },
-      {
-        id: 2,
-        title: "Warehouse Optimization Strategies",
-        slug: "warehouse-optimization-strategies",
-        author: "Sarah Johnson",
-        date: "2024-03-10",
-        category: "Best Practices",
-        image: "/images/blog/warehouse-optimization.jpg",
-        excerpt: "Learn the top strategies for optimizing your warehouse operations and improving efficiency.",
-        content: "Efficient warehouse management is crucial for maintaining a competitive edge in today's fast-paced market...",
-        tags: ["Warehouse", "Optimization", "Efficiency", "Management"],
-      },
-      {
-        id: 3,
-        title: "IoT in Modern Logistics",
-        slug: "iot-in-modern-logistics",
-        author: "Michael Chen",
-        date: "2024-03-05",
-        category: "Technology",
-        image: "/images/blog/iot-logistics.jpg",
-        excerpt: "Explore how IoT devices are revolutionizing logistics tracking and management.",
-        content: "The Internet of Things (IoT) has become an integral part of modern logistics operations...",
-        tags: ["IoT", "Logistics", "Technology", "Innovation"],
-      }
-    ],
+    posts: [],
     newsletter: {
       title: "Subscribe to Our Newsletter",
-      description: "Get the latest insights and updates delivered to your inbox.",
+      description: "Get the latest updates and insights delivered directly to your inbox.",
       buttonText: "Subscribe Now",
+      successMessage: "Thank you for subscribing!",
+      errorMessage: "Oops! Something went wrong. Please try again.",
     }
   },
   contact: {
