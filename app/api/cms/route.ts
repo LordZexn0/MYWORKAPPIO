@@ -6,6 +6,7 @@ const defaultContent = {
   site: {
     name: "MyWorkApp.io",
     logo: "/images/logo-transparent.png",
+    logoTransparent: "/images/logo-transparent.png",
     description:
       "End-to-end turnkey solutions for logistics, warehouse management, IoT tracking, and custom workflows.",
     tagline: "Modern Solutions For Tomorrow's Challenges",
@@ -552,23 +553,30 @@ const CMS_KEY = "cms-content"
 
 export async function GET() {
   try {
+    console.log("🔍 GET CMS: Attempting to fetch content from KV store...")
+    
     // Try to get content from KV store
     const content = await kv.get(CMS_KEY)
+    console.log("📊 KV GET result:", content ? "✅ Content found" : "❌ No content found")
 
     if (content) {
+      console.log("✅ Returning saved content from KV store")
       return NextResponse.json(content)
     }
 
     // If no content in KV, return default and save it
+    console.log("💾 No content found, saving default content to KV store...")
     try {
       await kv.set(CMS_KEY, defaultContent)
+      console.log("✅ Default content saved to KV store successfully")
     } catch (kvError) {
-      console.error("KV set error:", kvError)
+      console.error("❌ KV set error:", kvError)
       // Continue anyway, just return default content
     }
+    console.log("📤 Returning default content")
     return NextResponse.json(defaultContent)
   } catch (error) {
-    console.error("Error fetching CMS content:", error)
+    console.error("❌ Error fetching CMS content:", error)
     // If KV fails completely, return default content
     return NextResponse.json(defaultContent)
   }
@@ -576,18 +584,39 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("💾 POST CMS: Attempting to save content to KV store...")
     const content = await request.json()
+    console.log("📝 Content received, size:", JSON.stringify(content).length, "characters")
 
     // Save to KV store
     try {
       await kv.set(CMS_KEY, content)
-      return NextResponse.json({ success: true })
+      console.log("✅ Content saved to KV store successfully!")
+      
+      // Verify save by reading back
+      const verification = await kv.get(CMS_KEY)
+      const verified = verification ? "✅ Verification successful" : "❌ Verification failed"
+      console.log("🔍 Save verification:", verified)
+      
+      return NextResponse.json({ 
+        success: true, 
+        message: "Content saved successfully",
+        verified: !!verification,
+        timestamp: new Date().toISOString()
+      })
     } catch (kvError) {
-      console.error("KV save error:", kvError)
-      return NextResponse.json({ error: "KV storage not available", success: false }, { status: 500 })
+      console.error("❌ KV save error:", kvError)
+      return NextResponse.json({ 
+        error: "KV storage not available", 
+        success: false,
+        details: kvError instanceof Error ? kvError.message : "Unknown KV error"
+      }, { status: 500 })
     }
   } catch (error) {
-    console.error("Error saving CMS content:", error)
-    return NextResponse.json({ error: "Failed to save content" }, { status: 500 })
+    console.error("❌ Error saving CMS content:", error)
+    return NextResponse.json({ 
+      error: "Failed to save content",
+      details: error instanceof Error ? error.message : "Unknown error"
+    }, { status: 500 })
   }
 }

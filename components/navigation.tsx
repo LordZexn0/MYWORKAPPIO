@@ -25,7 +25,7 @@ export default function Navigation() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <img src="/images/logo.png" alt="MyWorkApp.io Logo" width={50} height={50} className="h-10 w-auto" />
+            <img src="/images/logo-transparent.png" alt="MyWorkApp.io Logo" width={50} height={50} className="h-10 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}

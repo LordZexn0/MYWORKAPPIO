@@ -6,7 +6,7 @@ import { Calendar, User, ArrowRight, Clock } from "lucide-react"
 import Navigation from "@/components/navigation"
 import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
-import LoadingScreen from "@/components/loading-screen"
+import LoadingScreen from "@/app/loading-screen"
 import Link from "next/link"
 
 const blogPosts = [

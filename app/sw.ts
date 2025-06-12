@@ -11,7 +11,7 @@ const CACHE_NAME = "myworkapp-cache-v1"
 const urlsToCache = [
   "/",
   "/videos/websiteback.mp4",
-  "/images/logo.png",
+  "/images/logo-transparent.png",
   "/images/logistics.png",
   "/images/digitalwarehouse.png",
   "/images/iotsensors.png",

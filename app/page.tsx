@@ -8,7 +8,8 @@ import Footer from "@/components/footer"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, CheckCircle } from "lucide-react"
-import LoadingScreen from "@/components/loading-screen"
+import LoadingScreen from "@/app/loading-screen"
+import { AnimatePresence } from "framer-motion"
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true)
@@ -32,7 +33,7 @@ export default function Home() {
 
   return (
     <>
-      {isLoading && <LoadingScreen onLoadingComplete={handleLoadingComplete} />}
+      <AnimatePresence>{isLoading && <LoadingScreen onLoadingComplete={handleLoadingComplete} />}</AnimatePresence>
       <Navigation />
 
       <main className="bg-white text-gray-900">

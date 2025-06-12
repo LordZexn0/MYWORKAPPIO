@@ -6,7 +6,8 @@ import { MapPin, Phone, Mail, Clock } from "lucide-react"
 import ContactForm from "@/components/contact-form"
 import Navigation from "@/components/navigation"
 import Footer from "@/components/footer"
-import LoadingScreen from "@/components/loading-screen"
+import LoadingScreen from "@/app/loading-screen"
+import { AnimatePresence } from "framer-motion"
 
 export default function ContactPage() {
   const [isLoading, setIsLoading] = useState(true)
@@ -29,7 +30,7 @@ export default function ContactPage() {
 
   return (
     <>
-      {isLoading && <LoadingScreen onLoadingComplete={handleLoadingComplete} />}
+      <AnimatePresence>{isLoading && <LoadingScreen onLoadingComplete={handleLoadingComplete} />}</AnimatePresence>
       <Navigation />
 
       <main className="pt-16 bg-white text-gray-900">

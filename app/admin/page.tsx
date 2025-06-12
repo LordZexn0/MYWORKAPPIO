@@ -9,12 +9,32 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
-import { Save, FileText, Info, ImageIcon, Users } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { 
+  Save, 
+  Upload, 
+  Image as ImageIcon, 
+  Home, 
+  Settings, 
+  FileText, 
+  Users, 
+  Phone, 
+  Briefcase,
+  Camera,
+  Loader2,
+  Check,
+  X,
+  Eye,
+  Trash2
+} from "lucide-react"
+import Image from "next/image"
 
 interface CMSData {
   site?: {
     name?: string
     logo?: string
+    logoTransparent?: string
     description?: string
     tagline?: string
     contact?: any
@@ -38,7 +58,10 @@ interface CMSData {
     cta?: any
   }
   whyUs?: any
-  caseStudies?: any
+  caseStudies?: {
+    hero?: any
+    items?: any[]
+  }
   blog?: {
     hero?: any
     posts?: any[]
@@ -50,11 +73,172 @@ interface CMSData {
   [key: string]: any
 }
 
+interface ImageUploadProps {
+  currentImage?: string
+  onImageChange: (url: string) => void
+  label: string
+  description?: string
+  aspectRatio?: string
+  }
+
+function ImageUpload({ currentImage, onImageChange, label, description, aspectRatio = "aspect-video" }: ImageUploadProps) {
+  const [uploading, setUploading] = useState(false)
+  const [dragOver, setDragOver] = useState(false)
+  const { toast } = useToast()
+
+  const handleFileUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "❌ Invalid File",
+        description: "Please select an image file",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "❌ File Too Large",
+        description: "Please select an image smaller than 5MB",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        onImageChange(result.url)
+        toast({
+          title: "✅ Image Uploaded",
+          description: "Image has been uploaded successfully",
+        })
+      } else {
+        throw new Error("Upload failed")
+      }
+    } catch (error) {
+      toast({
+        title: "❌ Upload Error",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(false)
+    const file = e.dataTransfer.files[0]
+    if (file) handleFileUpload(file)
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) handleFileUpload(file)
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-medium">{label}</Label>
+        {currentImage && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onImageChange("")}
+            className="text-red-500 hover:text-red-700"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+      
+      {description && (
+        <p className="text-xs text-gray-500">{description}</p>
+      )}
+
+      <div
+        className={`relative border-2 border-dashed rounded-lg p-4 transition-colors ${
+          dragOver ? "border-blue-400 bg-blue-50" : "border-gray-300"
+        } ${currentImage ? "border-green-300 bg-green-50" : ""}`}
+        onDrop={handleDrop}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+        onDragLeave={() => setDragOver(false)}
+      >
+        {currentImage ? (
+          <div className="space-y-3">
+            <div className={`relative ${aspectRatio} w-full overflow-hidden rounded-md bg-gray-100`}>
+              <Image
+                src={currentImage}
+                alt={label}
+                fill
+                className="object-cover"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <Badge variant="secondary" className="text-green-700 bg-green-100">
+                <Check className="h-3 w-3 mr-1" />
+                Image Set
+              </Badge>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.open(currentImage, '_blank')}
+              >
+                <Eye className="h-4 w-4 mr-1" />
+                Preview
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <Camera className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+            <p className="text-sm text-gray-600 mb-2">
+              Drag and drop an image here, or click to select
+            </p>
+            <p className="text-xs text-gray-400">
+              Supports: JPG, PNG, WebP, GIF (max 5MB)
+            </p>
+          </div>
+        )}
+
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleFileSelect}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          disabled={uploading}
+        />
+
+        {uploading && (
+          <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-lg">
+            <div className="flex items-center space-x-2">
+              <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+              <span className="text-sm font-medium">Uploading...</span>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function AdminPage() {
   const [data, setData] = useState<CMSData | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [uploadingImage, setUploadingImage] = useState(false)
+  const [activeTab, setActiveTab] = useState("site")
   const { toast } = useToast()
 
   useEffect(() => {
@@ -63,17 +247,11 @@ export default function AdminPage() {
 
   const fetchData = async () => {
     try {
-      console.log("Fetching CMS data...")
       const response = await fetch("/api/cms")
-      console.log("API response status:", response.status)
-      
       if (!response.ok) {
         throw new Error(`API responded with status: ${response.status}`)
       }
-      
       const result = await response.json()
-      console.log("CMS Data loaded:", result)
-      console.log("Home hero data:", result?.home?.hero)
       setData(result)
     } catch (error) {
       console.error("Error fetching data:", error)
@@ -122,53 +300,6 @@ export default function AdminPage() {
     }
   }
 
-  const handleImageUpload = async (file: File, section: string, index?: number) => {
-    setUploadingImage(true)
-    try {
-      const formData = new FormData()
-      formData.append("file", file)
-
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        const imageUrl = result.url
-
-        if (!data) return
-
-        const newData = { ...data }
-
-        if (section === "services" && typeof index === "number" && newData.services?.items) {
-          newData.services.items[index].image = imageUrl
-        } else if (section === "blog" && typeof index === "number" && newData.blog?.posts) {
-          newData.blog.posts[index].image = imageUrl
-        }
-
-        setData(newData)
-
-        toast({
-          title: "📸 Image Uploaded!",
-          description: "Image has been uploaded successfully",
-          duration: 3000,
-        })
-      } else {
-        throw new Error("Upload failed")
-      }
-    } catch (error) {
-      console.error("Error uploading image:", error)
-      toast({
-        title: "❌ Upload Error",
-        description: "Failed to upload image. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setUploadingImage(false)
-    }
-  }
-
   const updateData = (path: string[], value: any) => {
     if (!data) return
 
@@ -176,6 +307,9 @@ export default function AdminPage() {
     let current: any = newData
 
     for (let i = 0; i < path.length - 1; i++) {
+      if (!current[path[i]]) {
+        current[path[i]] = {}
+      }
       current = current[path[i]]
     }
 
@@ -185,10 +319,10 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading CMS...</p>
+          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600 font-medium">Loading CMS...</p>
         </div>
       </div>
     )
@@ -196,698 +330,478 @@ export default function AdminPage() {
 
   if (!data) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600">Failed to load CMS data</p>
-          <Button onClick={fetchData} className="mt-4">
-            Retry
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Card className="w-96">
+          <CardHeader>
+            <CardTitle className="text-red-600">❌ Error</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-600 mb-4">Failed to load CMS data</p>
+            <Button onClick={fetchData} className="w-full">
+              Try Again
           </Button>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-50 bg-white border-b shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">CMS Dashboard</h1>
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Settings className="h-6 w-6 text-blue-600" />
+                <h1 className="text-xl font-bold text-gray-900">Content Management System</h1>
+              </div>
+              <Badge variant="secondary">MyWorkApp.io</Badge>
+            </div>
+            <div className="flex items-center space-x-3">
           <Button
             onClick={handleSave}
             disabled={saving}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {saving ? "Saving..." : "Save Changes"}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
           </Button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Status Info */}
-        <div className="mb-4 p-4 bg-green-100 border border-green-400 rounded">
-          <h3 className="font-bold text-green-800">✅ CMS Data Loaded Successfully</h3>
-          <p className="text-green-700">Ready to edit content below</p>
-        </div>
-        
-        <Tabs defaultValue="hero" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7 bg-white rounded-xl shadow-sm border p-1">
-            <TabsTrigger
-              value="hero"
-              className="flex items-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-gray-50"
-            >
-              <FileText className="w-4 h-4" />
-              <span className="hidden sm:inline">🏠 Hero</span>
-              <span className="sm:hidden">🏠</span>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:grid-cols-6">
+            <TabsTrigger value="site" className="flex items-center space-x-2">
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Site</span>
             </TabsTrigger>
-            <TabsTrigger
-              value="about"
-              className="flex items-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-gray-50"
-            >
-              <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">📋 About</span>
-              <span className="sm:hidden">📋</span>
+            <TabsTrigger value="home" className="flex items-center space-x-2">
+              <Home className="h-4 w-4" />
+              <span className="hidden sm:inline">Home</span>
             </TabsTrigger>
-            <TabsTrigger
-              value="services"
-              className="flex items-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-gray-50"
-            >
-              <ImageIcon className="w-4 h-4" />
-              <span className="hidden sm:inline">⚙️ Services</span>
-              <span className="sm:hidden">⚙️</span>
+            <TabsTrigger value="services" className="flex items-center space-x-2">
+              <Briefcase className="h-4 w-4" />
+              <span className="hidden sm:inline">Services</span>
             </TabsTrigger>
-            <TabsTrigger
-              value="site"
-              className="flex items-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-gray-50"
-            >
-              <Info className="w-4 h-4" />
-              <span className="hidden sm:inline">🌐 Site Info</span>
-              <span className="sm:hidden">🌐</span>
+            <TabsTrigger value="cases" className="flex items-center space-x-2">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Cases</span>
             </TabsTrigger>
-            <TabsTrigger
-              value="blog"
-              className="flex items-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-gray-50"
-            >
-              <FileText className="w-4 h-4" />
-              <span className="hidden sm:inline">📝 Blog</span>
-              <span className="sm:hidden">📝</span>
+            <TabsTrigger value="about" className="flex items-center space-x-2">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">About</span>
             </TabsTrigger>
-            <TabsTrigger
-              value="contact"
-              className="flex items-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-gray-50"
-            >
-              <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">📞 Contact</span>
-              <span className="sm:hidden">📞</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="footer"
-              className="flex items-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-gray-50"
-            >
-              <Info className="w-4 h-4" />
-              <span className="hidden sm:inline">🔗 Footer</span>
-              <span className="sm:hidden">🔗</span>
+            <TabsTrigger value="contact" className="flex items-center space-x-2">
+              <Phone className="h-4 w-4" />
+              <span className="hidden sm:inline">Contact</span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="hero">
-            <Card className="border-2 border-blue-200">
-              <CardHeader className="bg-blue-50">
-                <CardTitle className="text-blue-800">🏠 Hero Section - Homepage Banner</CardTitle>
+          {/* Site Settings Tab */}
+          <TabsContent value="site" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Settings className="h-5 w-5" />
+                  <span>Site Configuration</span>
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6 p-6">
-                <div>
-                  <Label htmlFor="hero-title" className="text-lg font-semibold">Main Title</Label>
-                  <Input
-                    id="hero-title"
-                    value={data?.home?.hero?.title || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.home) newData.home = {}
-                      if (!newData.home.hero) newData.home.hero = {}
-                      newData.home.hero.title = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="Main hero title"
-                    className="mt-2 p-3 text-lg"
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.home?.hero?.title}</p>
-                </div>
-                <div>
-                  <Label htmlFor="hero-subtitle" className="text-lg font-semibold">Subtitle</Label>
-                  <Textarea
-                    id="hero-subtitle"
-                    value={data?.home?.hero?.subtitle || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.home) newData.home = {}
-                      if (!newData.home.hero) newData.home.hero = {}
-                      newData.home.hero.subtitle = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="Hero subtitle/description"
-                    rows={3}
-                    className="mt-2 p-3"
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.home?.hero?.subtitle}</p>
-                </div>
-                <div>
-                  <Label htmlFor="hero-description" className="text-lg font-semibold">Description</Label>
-                  <Textarea
-                    id="hero-description"
-                    value={data?.home?.hero?.description || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.home) newData.home = {}
-                      if (!newData.home.hero) newData.home.hero = {}
-                      newData.home.hero.description = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="Hero description text"
-                    rows={4}
-                    className="mt-2 p-3"
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.home?.hero?.description}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="about">
-            <Card className="border-2 border-purple-200">
-              <CardHeader className="bg-purple-50">
-                <CardTitle className="text-purple-800">📋 About/Why Us Section</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6 p-6">
-                <div>
-                  <Label htmlFor="whyus-title" className="text-lg font-semibold">Why Us Title</Label>
-                  <Input
-                    id="whyus-title"
-                    value={data?.whyUs?.hero?.title || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.whyUs) newData.whyUs = {}
-                      if (!newData.whyUs.hero) newData.whyUs.hero = {}
-                      newData.whyUs.hero.title = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="Why choose us title"
-                    className="mt-2 p-3 text-lg"
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.whyUs?.hero?.title}</p>
-                </div>
-                <div>
-                  <Label htmlFor="whyus-description" className="text-lg font-semibold">Why Us Description</Label>
-                  <Textarea
-                    id="whyus-description"
-                    value={data?.whyUs?.hero?.description || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.whyUs) newData.whyUs = {}
-                      if (!newData.whyUs.hero) newData.whyUs.hero = {}
-                      newData.whyUs.hero.description = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="Why choose us description"
-                    rows={4}
-                    className="mt-2 p-3"
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.whyUs?.hero?.description}</p>
-                </div>
-                <div>
-                  <Label htmlFor="reasons-title" className="text-lg font-semibold">Reasons Section Title</Label>
-                  <Input
-                    id="reasons-title"
-                    value={data?.whyUs?.reasons?.title || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.whyUs) newData.whyUs = {}
-                      if (!newData.whyUs.reasons) newData.whyUs.reasons = {}
-                      newData.whyUs.reasons.title = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="What sets us apart title"
-                    className="mt-2 p-3"
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.whyUs?.reasons?.title}</p>
-                </div>
-                <div>
-                  <Label htmlFor="reasons-description" className="text-lg font-semibold">Reasons Description</Label>
-                  <Textarea
-                    id="reasons-description"
-                    value={data?.whyUs?.reasons?.description || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.whyUs) newData.whyUs = {}
-                      if (!newData.whyUs.reasons) newData.whyUs.reasons = {}
-                      newData.whyUs.reasons.description = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="Reasons section description"
-                    rows={3}
-                    className="mt-2 p-3"
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.whyUs?.reasons?.description}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="services">
-            <Card className="border-2 border-orange-200">
-              <CardHeader className="bg-orange-50">
-                <CardTitle className="text-orange-800">⚙️ Services Section</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6 p-6">
-                <div>
-                  <Label htmlFor="services-title" className="text-lg font-semibold">Services Page Title</Label>
-                  <Input
-                    id="services-title"
-                    value={data?.services?.hero?.title || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.services) newData.services = {}
-                      if (!newData.services.hero) newData.services.hero = {}
-                      newData.services.hero.title = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="Services page title"
-                    className="mt-2 p-3 text-lg"
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.services?.hero?.title}</p>
-                </div>
-                <div>
-                  <Label htmlFor="services-description" className="text-lg font-semibold">Services Description</Label>
-                  <Textarea
-                    id="services-description"
-                    value={data?.services?.hero?.description || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.services) newData.services = {}
-                      if (!newData.services.hero) newData.services.hero = {}
-                      newData.services.hero.description = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="Services page description"
-                    rows={3}
-                    className="mt-2 p-3"
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.services?.hero?.description}</p>
-                </div>
-                
-                {/* Individual Service Items */}
-                <div className="border-t pt-6">
-                  <h3 className="text-xl font-bold mb-4">Individual Services</h3>
-                  {data?.services?.items?.map((service: any, index: number) => (
-                    <div key={index} className="mb-8 p-4 border border-gray-200 rounded">
-                      <h4 className="font-semibold mb-3">Service {index + 1}: {service.title}</h4>
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor={`service-${index}-title`}>Service Title</Label>
-                          <Input
-                            id={`service-${index}-title`}
-                            value={service.title || ""}
-                            onChange={(e) => {
-                              const newData = { ...data }
-                              if (!newData.services?.items) return
-                              newData.services.items[index].title = e.target.value
-                              setData(newData)
-                            }}
-                            className="mt-1 p-2"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor={`service-${index}-subtitle`}>Service Subtitle</Label>
-                          <Input
-                            id={`service-${index}-subtitle`}
-                            value={service.subtitle || ""}
-                            onChange={(e) => {
-                              const newData = { ...data }
-                              if (!newData.services?.items) return
-                              newData.services.items[index].subtitle = e.target.value
-                              setData(newData)
-                            }}
-                            className="mt-1 p-2"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor={`service-${index}-description`}>Service Description</Label>
-                          <Textarea
-                            id={`service-${index}-description`}
-                            value={service.description || ""}
-                            onChange={(e) => {
-                              const newData = { ...data }
-                              if (!newData.services?.items) return
-                              newData.services.items[index].description = e.target.value
-                              setData(newData)
-                            }}
-                            rows={3}
-                            className="mt-1 p-2"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )) || []}
-                </div>
-                
-                <div>
-                  <Label htmlFor="services-cta-title" className="text-lg font-semibold">Services CTA Title</Label>
-                  <Input
-                    id="services-cta-title"
-                    value={data?.services?.cta?.title || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.services) newData.services = {}
-                      if (!newData.services.cta) newData.services.cta = {}
-                      newData.services.cta.title = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="Services call-to-action title"
-                    className="mt-2 p-3"
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.services?.cta?.title}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="site">
-            <Card className="border-2 border-green-200">
-              <CardHeader className="bg-green-50">
-                <CardTitle className="text-green-800">🌐 Site Information - General Settings</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6 p-6">
-                <div>
-                  <Label htmlFor="site-name" className="text-lg font-semibold">Site Name</Label>
-                  <Input
-                    id="site-name"
-                    value={data?.site?.name || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.site) newData.site = {}
-                      newData.site.name = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="Website name"
-                    className="mt-2 p-3 text-lg"
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.site?.name}</p>
-                </div>
-                <div>
-                  <Label htmlFor="site-description" className="text-lg font-semibold">Site Description</Label>
-                  <Textarea
-                    id="site-description"
-                    value={data?.site?.description || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.site) newData.site = {}
-                      newData.site.description = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="Website description"
-                    rows={4}
-                    className="mt-2 p-3"
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.site?.description}</p>
-                </div>
-                <div>
-                  <Label htmlFor="site-tagline" className="text-lg font-semibold">Tagline</Label>
-                  <Input
-                    id="site-tagline"
-                    value={data?.site?.tagline || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.site) newData.site = {}
-                      newData.site.tagline = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="Site tagline"
-                    className="mt-2 p-3"
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.site?.tagline}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="blog">
-            <Card className="border-2 border-red-200">
-              <CardHeader className="bg-red-50">
-                <CardTitle className="text-red-800">📝 Blog Section</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6 p-6">
-                <div>
-                  <Label htmlFor="blog-title" className="text-lg font-semibold">Blog Page Title</Label>
-                  <Input
-                    id="blog-title"
-                    value={data?.blog?.hero?.title || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.blog) newData.blog = {}
-                      if (!newData.blog.hero) newData.blog.hero = {}
-                      newData.blog.hero.title = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="Blog page title"
-                    className="mt-2 p-3 text-lg"
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.blog?.hero?.title}</p>
-                </div>
-                <div>
-                  <Label htmlFor="blog-description" className="text-lg font-semibold">Blog Description</Label>
-                  <Textarea
-                    id="blog-description"
-                    value={data?.blog?.hero?.description || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.blog) newData.blog = {}
-                      if (!newData.blog.hero) newData.blog.hero = {}
-                      newData.blog.hero.description = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="Blog page description"
-                    rows={3}
-                    className="mt-2 p-3"
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.blog?.hero?.description}</p>
-                </div>
-                
-                {/* Newsletter Section */}
-                <div className="border-t pt-6">
-                  <h3 className="text-xl font-bold mb-4">Newsletter Section</h3>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="newsletter-title" className="text-lg font-semibold">Newsletter Title</Label>
+                      <Label htmlFor="siteName">Site Name</Label>
                       <Input
-                        id="newsletter-title"
-                        value={data?.blog?.newsletter?.title || ""}
-                        onChange={(e) => {
-                          const newData = { ...data }
-                          if (!newData.blog) newData.blog = {}
-                          if (!newData.blog.newsletter) newData.blog.newsletter = {}
-                          newData.blog.newsletter.title = e.target.value
-                          setData(newData)
-                        }}
-                        placeholder="Newsletter signup title"
-                        className="mt-2 p-3"
+                        id="siteName"
+                        value={data.site?.name || ""}
+                        onChange={(e) => updateData(["site", "name"], e.target.value)}
+                        placeholder="MyWorkApp.io"
                       />
-                      <p className="text-sm text-gray-600 mt-1">Current: {data?.blog?.newsletter?.title}</p>
                     </div>
                     <div>
-                      <Label htmlFor="newsletter-description" className="text-lg font-semibold">Newsletter Description</Label>
-                      <Textarea
-                        id="newsletter-description"
-                        value={data?.blog?.newsletter?.description || ""}
-                        onChange={(e) => {
-                          const newData = { ...data }
-                          if (!newData.blog) newData.blog = {}
-                          if (!newData.blog.newsletter) newData.blog.newsletter = {}
-                          newData.blog.newsletter.description = e.target.value
-                          setData(newData)
-                        }}
-                        placeholder="Newsletter signup description"
-                        rows={2}
-                        className="mt-2 p-3"
+                      <Label htmlFor="tagline">Tagline</Label>
+                      <Input
+                        id="tagline"
+                        value={data.site?.tagline || ""}
+                        onChange={(e) => updateData(["site", "tagline"], e.target.value)}
+                        placeholder="Modern Solutions For Tomorrow's Challenges"
                       />
-                      <p className="text-sm text-gray-600 mt-1">Current: {data?.blog?.newsletter?.description}</p>
                     </div>
+                    <div>
+                      <Label htmlFor="description">Site Description</Label>
+                      <Textarea
+                        id="description"
+                        value={data.site?.description || ""}
+                        onChange={(e) => updateData(["site", "description"], e.target.value)}
+                        placeholder="End-to-end turnkey solutions for logistics..."
+                        rows={4}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-6">
+                    <ImageUpload
+                      currentImage={data.site?.logo}
+                      onImageChange={(url) => updateData(["site", "logo"], url)}
+                      label="Main Logo"
+                      description="Used in navigation and headers (recommended: 200x50px)"
+                      aspectRatio="aspect-[4/1]"
+                    />
+                    <ImageUpload
+                      currentImage={data.site?.logoTransparent}
+                      onImageChange={(url) => updateData(["site", "logoTransparent"], url)}
+                      label="Transparent Logo"
+                      description="Used on dark backgrounds and loading screen"
+                      aspectRatio="aspect-square"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Home Tab */}
+          <TabsContent value="home" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Home className="h-5 w-5" />
+                  <span>Hero Section</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="heroTitle">Hero Title</Label>
+                  <Input
+                    id="heroTitle"
+                    value={data.home?.hero?.title || ""}
+                    onChange={(e) => updateData(["home", "hero", "title"], e.target.value)}
+                    placeholder="Transform Your Operations with Turnkey Solutions"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="heroSubtitle">Hero Subtitle</Label>
+                  <Input
+                    id="heroSubtitle"
+                    value={data.home?.hero?.subtitle || ""}
+                    onChange={(e) => updateData(["home", "hero", "subtitle"], e.target.value)}
+                    placeholder="Ready-to-Deploy Systems That Work From Day One"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="heroDescription">Hero Description</Label>
+                  <Textarea
+                    id="heroDescription"
+                    value={data.home?.hero?.description || ""}
+                    onChange={(e) => updateData(["home", "hero", "description"], e.target.value)}
+                    placeholder="We deliver complete, turnkey solutions..."
+                    rows={4}
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="primaryButton">Primary Button Text</Label>
+                    <Input
+                      id="primaryButton"
+                      value={data.home?.hero?.primaryButton || ""}
+                      onChange={(e) => updateData(["home", "hero", "primaryButton"], e.target.value)}
+                      placeholder="Get Started Today"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="secondaryButton">Secondary Button Text</Label>
+                    <Input
+                      id="secondaryButton"
+                      value={data.home?.hero?.secondaryButton || ""}
+                      onChange={(e) => updateData(["home", "hero", "secondaryButton"], e.target.value)}
+                      placeholder="View Our Services"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Services Tab */}
+          <TabsContent value="services" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Briefcase className="h-5 w-5" />
+                  <span>Services Management</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="servicesTitle">Services Page Title</Label>
+                    <Input
+                      id="servicesTitle"
+                      value={data.services?.hero?.title || ""}
+                      onChange={(e) => updateData(["services", "hero", "title"], e.target.value)}
+                      placeholder="Our Services"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="servicesDescription">Services Page Description</Label>
+                    <Textarea
+                      id="servicesDescription"
+                      value={data.services?.hero?.description || ""}
+                      onChange={(e) => updateData(["services", "hero", "description"], e.target.value)}
+                      placeholder="Comprehensive turnkey solutions..."
+                      rows={3}
+                    />
                   </div>
                 </div>
 
-                {/* Blog Posts */}
-                <div className="border-t pt-6">
-                  <h3 className="text-xl font-bold mb-4">Blog Posts ({data?.blog?.posts?.length || 0} posts)</h3>
-                  <p className="text-gray-600 mb-4">Individual blog posts can be managed here. Each post includes title, excerpt, author, and category.</p>
-                  {data?.blog?.posts?.slice(0, 3).map((post: any, index: number) => (
-                    <div key={index} className="mb-6 p-4 border border-gray-200 rounded">
-                      <h4 className="font-semibold mb-3">Post {index + 1}: {post.title}</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor={`post-${index}-title`}>Post Title</Label>
-                          <Input
-                            id={`post-${index}-title`}
-                            value={post.title || ""}
-                            onChange={(e) => {
-                              const newData = { ...data }
-                              if (!newData.blog?.posts) return
-                              newData.blog.posts[index].title = e.target.value
-                              setData(newData)
-                            }}
-                            className="mt-1 p-2"
-                          />
+                <Separator />
+
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold">Service Items</h3>
+                  {data.services?.items?.map((service: any, index: number) => (
+                    <Card key={service.id || index} className="border-l-4 border-l-blue-500">
+                      <CardHeader>
+                        <CardTitle className="text-base">Service {index + 1}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                                     <div className="space-y-4">
+                             <div>
+                               <Label>Service Title</Label>
+                               <Input
+                                 value={service.title || ""}
+                                 onChange={(e) => updateData(["services", "items", String(index), "title"], e.target.value)}
+                                 placeholder="Service Title"
+                               />
+                             </div>
+                             <div>
+                               <Label>Service Subtitle</Label>
+                               <Input
+                                 value={service.subtitle || ""}
+                                 onChange={(e) => updateData(["services", "items", String(index), "subtitle"], e.target.value)}
+                                 placeholder="Service Subtitle"
+                               />
+                             </div>
+                             <div>
+                               <Label>Service Description</Label>
+                               <Textarea
+                                 value={service.description || ""}
+                                 onChange={(e) => updateData(["services", "items", String(index), "description"], e.target.value)}
+                                 placeholder="Service Description"
+                                 rows={4}
+                               />
+                             </div>
+                           </div>
+                           <div>
+                             <ImageUpload
+                               currentImage={service.image}
+                               onImageChange={(url) => updateData(["services", "items", String(index), "image"], url)}
+                               label={`Service ${index + 1} Image`}
+                               description="Service illustration or icon (recommended: 400x300px)"
+                               aspectRatio="aspect-[4/3]"
+                             />
+                           </div>
                         </div>
-                        <div>
-                          <Label htmlFor={`post-${index}-author`}>Author</Label>
-                          <Input
-                            id={`post-${index}-author`}
-                            value={post.author || ""}
-                            onChange={(e) => {
-                              const newData = { ...data }
-                              if (!newData.blog?.posts) return
-                              newData.blog.posts[index].author = e.target.value
-                              setData(newData)
-                            }}
-                            className="mt-1 p-2"
-                          />
-                        </div>
-                      </div>
-                      <div className="mt-3">
-                        <Label htmlFor={`post-${index}-excerpt`}>Post Excerpt</Label>
-                        <Textarea
-                          id={`post-${index}-excerpt`}
-                          value={post.excerpt || ""}
-                          onChange={(e) => {
-                            const newData = { ...data }
-                            if (!newData.blog?.posts) return
-                            newData.blog.posts[index].excerpt = e.target.value
-                            setData(newData)
-                          }}
-                          rows={2}
-                          className="mt-1 p-2"
-                        />
-                      </div>
-                    </div>
-                  )) || []}
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="contact">
-            <Card className="border-2 border-indigo-200">
-              <CardHeader className="bg-indigo-50">
-                <CardTitle className="text-indigo-800">📞 Contact Page</CardTitle>
+          {/* Case Studies Tab */}
+          <TabsContent value="cases" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <FileText className="h-5 w-5" />
+                  <span>Case Studies Management</span>
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6 p-6">
-                <div>
-                  <Label htmlFor="contact-title" className="text-lg font-semibold">Contact Page Title</Label>
-                  <Input
-                    id="contact-title"
-                    value={data?.contact?.hero?.title || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.contact) newData.contact = {}
-                      if (!newData.contact.hero) newData.contact.hero = {}
-                      newData.contact.hero.title = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="Contact page title"
-                    className="mt-2 p-3 text-lg"
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.contact?.hero?.title}</p>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="caseStudiesTitle">Case Studies Page Title</Label>
+                    <Input
+                      id="caseStudiesTitle"
+                      value={data.caseStudies?.hero?.title || ""}
+                      onChange={(e) => updateData(["caseStudies", "hero", "title"], e.target.value)}
+                      placeholder="Success Stories"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="caseStudiesDescription">Case Studies Page Description</Label>
+                    <Textarea
+                      id="caseStudiesDescription"
+                      value={data.caseStudies?.hero?.description || ""}
+                      onChange={(e) => updateData(["caseStudies", "hero", "description"], e.target.value)}
+                      placeholder="See how our turnkey solutions have transformed operations..."
+                      rows={3}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="contact-description" className="text-lg font-semibold">Contact Description</Label>
-                  <Textarea
-                    id="contact-description"
-                    value={data?.contact?.hero?.description || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.contact) newData.contact = {}
-                      if (!newData.contact.hero) newData.contact.hero = {}
-                      newData.contact.hero.description = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="Contact page description"
-                    rows={3}
-                    className="mt-2 p-3"
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.contact?.hero?.description}</p>
-                </div>
-                <div>
-                  <Label htmlFor="contact-form-title" className="text-lg font-semibold">Contact Form Title</Label>
-                  <Input
-                    id="contact-form-title"
-                    value={data?.contact?.form?.title || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.contact) newData.contact = {}
-                      if (!newData.contact.form) newData.contact.form = {}
-                      newData.contact.form.title = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="Contact form title"
-                    className="mt-2 p-3"
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.contact?.form?.title}</p>
+
+                <Separator />
+
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold">Case Study Items</h3>
+                  {data.caseStudies?.items?.map((caseStudy: any, index: number) => (
+                    <Card key={caseStudy.id || index} className="border-l-4 border-l-green-500">
+                      <CardHeader>
+                        <CardTitle className="text-base">Case Study {index + 1}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          <div className="space-y-4">
+                            <div>
+                              <Label>Case Study Title</Label>
+                              <Input
+                                value={caseStudy.title || ""}
+                                onChange={(e) => updateData(["caseStudies", "items", String(index), "title"], e.target.value)}
+                                placeholder="Case Study Title"
+                              />
+                            </div>
+                            <div>
+                              <Label>Client Name</Label>
+                              <Input
+                                value={caseStudy.client || ""}
+                                onChange={(e) => updateData(["caseStudies", "items", String(index), "client"], e.target.value)}
+                                placeholder="Client Company Name"
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label>Industry</Label>
+                                <Input
+                                  value={caseStudy.industry || ""}
+                                  onChange={(e) => updateData(["caseStudies", "items", String(index), "industry"], e.target.value)}
+                                  placeholder="Industry"
+                                />
+                              </div>
+                              <div>
+                                <Label>Location</Label>
+                                <Input
+                                  value={caseStudy.location || ""}
+                                  onChange={(e) => updateData(["caseStudies", "items", String(index), "location"], e.target.value)}
+                                  placeholder="Location"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <Label>Challenge</Label>
+                              <Textarea
+                                value={caseStudy.challenge || ""}
+                                onChange={(e) => updateData(["caseStudies", "items", String(index), "challenge"], e.target.value)}
+                                placeholder="What challenges did the client face?"
+                                rows={3}
+                              />
+                            </div>
+                            <div>
+                              <Label>Solution</Label>
+                              <Textarea
+                                value={caseStudy.solution || ""}
+                                onChange={(e) => updateData(["caseStudies", "items", String(index), "solution"], e.target.value)}
+                                placeholder="How did we solve their problems?"
+                                rows={3}
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <ImageUpload
+                              currentImage={caseStudy.image}
+                              onImageChange={(url) => updateData(["caseStudies", "items", String(index), "image"], url)}
+                              label={`Case Study ${index + 1} Image`}
+                              description="Case study hero image (recommended: 600x400px)"
+                              aspectRatio="aspect-[3/2]"
+                            />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="footer">
-            <Card className="border-2 border-gray-200">
-              <CardHeader className="bg-gray-50">
-                <CardTitle className="text-gray-800">🔗 Footer Information</CardTitle>
+          {/* About Tab */}
+          <TabsContent value="about" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Users className="h-5 w-5" />
+                  <span>About / Why Us Section</span>
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6 p-6">
+              <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="footer-description" className="text-lg font-semibold">Footer Description</Label>
+                  <Label htmlFor="whyUsTitle">Why Us Title</Label>
+                  <Input
+                    id="whyUsTitle"
+                    value={data.whyUs?.hero?.title || ""}
+                    onChange={(e) => updateData(["whyUs", "hero", "title"], e.target.value)}
+                    placeholder="Why Choose MyWorkApp.io?"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="whyUsDescription">Why Us Description</Label>
                   <Textarea
-                    id="footer-description"
-                    value={data?.footer?.description || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.footer) newData.footer = {}
-                      newData.footer.description = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="Footer description text"
+                    id="whyUsDescription"
+                    value={data.whyUs?.hero?.description || ""}
+                    onChange={(e) => updateData(["whyUs", "hero", "description"], e.target.value)}
+                    placeholder="We're not just another software company..."
+                    rows={4}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+
+
+          {/* Contact Tab */}
+          <TabsContent value="contact" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Phone className="h-5 w-5" />
+                  <span>Contact Information</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="contactTitle">Contact Page Title</Label>
+                  <Input
+                    id="contactTitle"
+                    value={data.contact?.hero?.title || ""}
+                    onChange={(e) => updateData(["contact", "hero", "title"], e.target.value)}
+                    placeholder="Get In Touch"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="contactDescription">Contact Page Description</Label>
+                  <Textarea
+                    id="contactDescription"
+                    value={data.contact?.hero?.description || ""}
+                    onChange={(e) => updateData(["contact", "hero", "description"], e.target.value)}
+                    placeholder="Ready to transform your operations?"
                     rows={3}
-                    className="mt-2 p-3"
                   />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.footer?.description}</p>
-                </div>
-                <div>
-                  <Label htmlFor="footer-copyright" className="text-lg font-semibold">Copyright Text</Label>
-                  <Input
-                    id="footer-copyright"
-                    value={data?.footer?.copyright || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.footer) newData.footer = {}
-                      newData.footer.copyright = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="Copyright text"
-                    className="mt-2 p-3"
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.footer?.copyright}</p>
-                </div>
-                <div>
-                  <Label htmlFor="quicklinks-title" className="text-lg font-semibold">Quick Links Title</Label>
-                  <Input
-                    id="quicklinks-title"
-                    value={data?.footer?.quickLinks?.title || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.footer) newData.footer = {}
-                      if (!newData.footer.quickLinks) newData.footer.quickLinks = {}
-                      newData.footer.quickLinks.title = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="Quick links section title"
-                    className="mt-2 p-3"
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.footer?.quickLinks?.title}</p>
-                </div>
-                <div>
-                  <Label htmlFor="footer-contact-title" className="text-lg font-semibold">Footer Contact Title</Label>
-                  <Input
-                    id="footer-contact-title"
-                    value={data?.footer?.contact?.title || ""}
-                    onChange={(e) => {
-                      const newData = { ...data }
-                      if (!newData.footer) newData.footer = {}
-                      if (!newData.footer.contact) newData.footer.contact = {}
-                      newData.footer.contact.title = e.target.value
-                      setData(newData)
-                    }}
-                    placeholder="Footer contact section title"
-                    className="mt-2 p-3"
-                  />
-                  <p className="text-sm text-gray-600 mt-1">Current: {data?.footer?.contact?.title}</p>
                 </div>
               </CardContent>
             </Card>

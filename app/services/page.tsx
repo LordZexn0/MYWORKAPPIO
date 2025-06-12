@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import Navigation from "@/components/navigation"
 import Footer from "@/components/footer"
 import Link from "next/link"
-import LoadingScreen from "@/components/loading-screen"
+import LoadingScreen from "@/app/loading-screen"
 
 const services = [
   {
