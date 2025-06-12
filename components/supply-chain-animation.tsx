@@ -142,7 +142,13 @@ export default function SupplyChainAnimation() {
 
                       {/* Step Number */}
                       <motion.div
-                        className={`absolute -top-3 -right-3 w-8 h-8 bg-${step.color === "text-blue-900" ? "blue-900" : step.color === "text-yellow-500" ? "yellow-500" : "orange-500"} text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg`}
+                        className="absolute -top-3 -right-3 w-8 h-8 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg"
+                        style={{ 
+                          backgroundColor: step.color === "text-blue-900" ? "#0F4C81" : 
+                                         step.color === "text-yellow-500" ? "#FFCF40" : 
+                                         "#FF6B35",
+                          color: step.color === "text-yellow-500" ? "#000000" : "#FFFFFF"
+                        }}
                         initial={{ scale: 0 }}
                         animate={isInView ? { scale: 1 } : { scale: 0 }}
                         transition={{ delay: 0.5 + index * 0.1 }}

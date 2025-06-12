@@ -410,6 +410,10 @@ export default function AdminPage() {
               <Phone className="h-4 w-4" />
               <span className="hidden sm:inline">Contact</span>
             </TabsTrigger>
+            <TabsTrigger value="blog" className="flex items-center space-x-2">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Blog</span>
+            </TabsTrigger>
           </TabsList>
 
           {/* Site Settings Tab */}
@@ -772,8 +776,6 @@ export default function AdminPage() {
             </Card>
           </TabsContent>
 
-
-
           {/* Contact Tab */}
           <TabsContent value="contact" className="space-y-6">
             <Card>
@@ -805,6 +807,228 @@ export default function AdminPage() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Blog Tab */}
+          <TabsContent value="blog" className="space-y-6">
+            <div className="space-y-6">
+              {/* Hero Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Blog Hero Section</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Title</Label>
+                    <Input
+                      value={data?.blog?.hero?.title || ""}
+                      onChange={(e) => updateData(["blog", "hero", "title"], e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Description</Label>
+                    <Textarea
+                      value={data?.blog?.hero?.description || ""}
+                      onChange={(e) => updateData(["blog", "hero", "description"], e.target.value)}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Blog Posts */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Blog Posts</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {data?.blog?.posts?.map((post: any, index: number) => (
+                    <div key={post.id} className="space-y-4 pb-6 border-b">
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-lg font-semibold">Post {index + 1}</h3>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            const newPosts = [...(data?.blog?.posts || [])]
+                            newPosts.splice(index, 1)
+                            updateData(["blog", "posts"], newPosts)
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Title</Label>
+                          <Input
+                            value={post.title}
+                            onChange={(e) => {
+                              const newPosts = [...(data?.blog?.posts || [])]
+                              newPosts[index] = { ...post, title: e.target.value }
+                              updateData(["blog", "posts"], newPosts)
+                            }}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Slug</Label>
+                          <Input
+                            value={post.slug}
+                            onChange={(e) => {
+                              const newPosts = [...(data?.blog?.posts || [])]
+                              newPosts[index] = { ...post, slug: e.target.value }
+                              updateData(["blog", "posts"], newPosts)
+                            }}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Author</Label>
+                          <Input
+                            value={post.author}
+                            onChange={(e) => {
+                              const newPosts = [...(data?.blog?.posts || [])]
+                              newPosts[index] = { ...post, author: e.target.value }
+                              updateData(["blog", "posts"], newPosts)
+                            }}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Date</Label>
+                          <Input
+                            type="date"
+                            value={post.date}
+                            onChange={(e) => {
+                              const newPosts = [...(data?.blog?.posts || [])]
+                              newPosts[index] = { ...post, date: e.target.value }
+                              updateData(["blog", "posts"], newPosts)
+                            }}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Category</Label>
+                          <Input
+                            value={post.category}
+                            onChange={(e) => {
+                              const newPosts = [...(data?.blog?.posts || [])]
+                              newPosts[index] = { ...post, category: e.target.value }
+                              updateData(["blog", "posts"], newPosts)
+                            }}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Tags (comma-separated)</Label>
+                          <Input
+                            value={post.tags.join(", ")}
+                            onChange={(e) => {
+                              const newPosts = [...(data?.blog?.posts || [])]
+                              newPosts[index] = { 
+                                ...post, 
+                                tags: e.target.value.split(",").map(tag => tag.trim()).filter(Boolean)
+                              }
+                              updateData(["blog", "posts"], newPosts)
+                            }}
+                          />
+                        </div>
+
+                        <div className="space-y-2 md:col-span-2">
+                          <Label>Excerpt</Label>
+                          <Textarea
+                            value={post.excerpt}
+                            onChange={(e) => {
+                              const newPosts = [...(data?.blog?.posts || [])]
+                              newPosts[index] = { ...post, excerpt: e.target.value }
+                              updateData(["blog", "posts"], newPosts)
+                            }}
+                          />
+                        </div>
+
+                        <div className="space-y-2 md:col-span-2">
+                          <Label>Content</Label>
+                          <Textarea
+                            value={post.content}
+                            onChange={(e) => {
+                              const newPosts = [...(data?.blog?.posts || [])]
+                              newPosts[index] = { ...post, content: e.target.value }
+                              updateData(["blog", "posts"], newPosts)
+                            }}
+                            className="min-h-[200px]"
+                          />
+                        </div>
+
+                        <div className="space-y-2 md:col-span-2">
+                          <ImageUpload
+                            currentImage={post.image}
+                            onImageChange={(url) => {
+                              const newPosts = [...(data?.blog?.posts || [])]
+                              newPosts[index] = { ...post, image: url }
+                              updateData(["blog", "posts"], newPosts)
+                            }}
+                            label="Featured Image"
+                            aspectRatio="aspect-video"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  <Button
+                    onClick={() => {
+                      const newPost = {
+                        id: Date.now(),
+                        title: "New Blog Post",
+                        slug: "new-blog-post",
+                        author: "",
+                        date: new Date().toISOString().split("T")[0],
+                        category: "",
+                        image: "",
+                        excerpt: "",
+                        content: "",
+                        tags: [],
+                      }
+                      const newPosts = [...(data?.blog?.posts || []), newPost]
+                      updateData(["blog", "posts"], newPosts)
+                    }}
+                  >
+                    Add New Post
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Newsletter Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Newsletter Section</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Title</Label>
+                    <Input
+                      value={data?.blog?.newsletter?.title || ""}
+                      onChange={(e) => updateData(["blog", "newsletter", "title"], e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Description</Label>
+                    <Textarea
+                      value={data?.blog?.newsletter?.description || ""}
+                      onChange={(e) => updateData(["blog", "newsletter", "description"], e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Button Text</Label>
+                    <Input
+                      value={data?.blog?.newsletter?.buttonText || ""}
+                      onChange={(e) => updateData(["blog", "newsletter", "buttonText"], e.target.value)}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
