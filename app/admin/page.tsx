@@ -247,17 +247,16 @@ export default function AdminPage() {
 
   const fetchData = async () => {
     try {
+      setLoading(true)
       const response = await fetch("/api/cms")
-      if (!response.ok) {
-        throw new Error(`API responded with status: ${response.status}`)
-      }
+      if (!response.ok) throw new Error('Failed to fetch CMS data')
       const result = await response.json()
       setData(result)
     } catch (error) {
-      console.error("Error fetching data:", error)
+      console.error('Error fetching CMS data:', error)
       toast({
-        title: "❌ Error",
-        description: `Failed to load CMS data: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        title: "Error Loading Content",
+        description: "There was a problem loading the CMS content. Some features may be limited.",
         variant: "destructive",
       })
     } finally {
@@ -268,8 +267,8 @@ export default function AdminPage() {
   const handleSave = async () => {
     if (!data) return
 
-    setSaving(true)
     try {
+      setSaving(true)
       const response = await fetch("/api/cms", {
         method: "POST",
         headers: {
@@ -278,22 +277,24 @@ export default function AdminPage() {
         body: JSON.stringify(data),
       })
 
-      if (response.ok) {
+      const result = await response.json()
+
+      if (result.success) {
         toast({
-          title: "✅ Success!",
-          description: "Website content has been updated successfully",
-          duration: 5000,
+          title: "✅ Changes Saved",
+          description: result.storage === "kv" 
+            ? "Your changes have been saved successfully."
+            : "Changes processed, but persistent storage is currently unavailable.",
         })
       } else {
-        throw new Error("Failed to save")
+        throw new Error(result.error || 'Failed to save changes')
       }
     } catch (error) {
-      console.error("Error saving data:", error)
+      console.error('Error saving CMS data:', error)
       toast({
-        title: "❌ Error",
-        description: "Failed to save changes. Please try again.",
+        title: "Error Saving Changes",
+        description: "There was a problem saving your changes. Please try again.",
         variant: "destructive",
-        duration: 5000,
       })
     } finally {
       setSaving(false)

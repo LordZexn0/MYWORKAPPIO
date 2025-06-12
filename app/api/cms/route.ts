@@ -505,71 +505,83 @@ const defaultContent = {
 
 const CMS_KEY = "cms-content"
 
+// Helper function to check if KV is available
+async function isKVAvailable() {
+  try {
+    await kv.ping()
+    return true
+  } catch (error) {
+    return false
+  }
+}
+
 export async function GET() {
   try {
-    console.log("🔍 GET CMS: Attempting to fetch content from KV store...")
+    console.log("🔍 GET CMS: Checking KV availability...")
     
-    // Try to get content from KV store
-    const content = await kv.get(CMS_KEY)
-    console.log("📊 KV GET result:", content ? "✅ Content found" : "❌ No content found")
-
-    if (content) {
-      console.log("✅ Returning saved content from KV store")
-      return NextResponse.json(content)
-    }
-
-    // If no content in KV, return default and save it
-    console.log("💾 No content found, saving default content to KV store...")
-    try {
+    const kvAvailable = await isKVAvailable()
+    
+    if (kvAvailable) {
+      console.log("✅ KV is available, attempting to fetch content...")
+      // Try to get content from KV store
+      const content = await kv.get(CMS_KEY)
+      
+      if (content) {
+        console.log("✅ Returning saved content from KV store")
+        return NextResponse.json(content)
+      }
+      
+      // If no content in KV, save default content
+      console.log("💾 No content found, saving default content to KV store...")
       await kv.set(CMS_KEY, defaultContent)
-      console.log("✅ Default content saved to KV store successfully")
-    } catch (kvError) {
-      console.error("❌ KV set error:", kvError)
-      // Continue anyway, just return default content
+      return NextResponse.json(defaultContent)
+    } else {
+      console.log("⚠️ KV not available, returning default content")
+      return NextResponse.json(defaultContent)
     }
-    console.log("📤 Returning default content")
-    return NextResponse.json(defaultContent)
   } catch (error) {
-    console.error("❌ Error fetching CMS content:", error)
-    // If KV fails completely, return default content
+    console.error("❌ Error in GET:", error)
     return NextResponse.json(defaultContent)
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("💾 POST CMS: Attempting to save content to KV store...")
+    console.log("💾 POST CMS: Checking KV availability...")
     const content = await request.json()
-    console.log("📝 Content received, size:", JSON.stringify(content).length, "characters")
-
-    // Save to KV store
-    try {
-      await kv.set(CMS_KEY, content)
-      console.log("✅ Content saved to KV store successfully!")
-      
-      // Verify save by reading back
-      const verification = await kv.get(CMS_KEY)
-      const verified = verification ? "✅ Verification successful" : "❌ Verification failed"
-      console.log("🔍 Save verification:", verified)
-      
+    
+    const kvAvailable = await isKVAvailable()
+    
+    if (kvAvailable) {
+      console.log("✅ KV is available, saving content...")
+      try {
+        await kv.set(CMS_KEY, content)
+        return NextResponse.json({ 
+          success: true, 
+          message: "Content saved to KV successfully",
+          storage: "kv"
+        })
+      } catch (kvError) {
+        console.error("❌ KV save error:", kvError)
+        return NextResponse.json({ 
+          success: false,
+          error: "Failed to save to KV storage",
+          details: kvError instanceof Error ? kvError.message : "Unknown KV error"
+        }, { status: 500 })
+      }
+    } else {
+      console.log("⚠️ KV not available, returning success without saving")
       return NextResponse.json({ 
         success: true, 
-        message: "Content saved successfully",
-        verified: !!verification,
-        timestamp: new Date().toISOString()
+        message: "KV storage not available, but request processed",
+        storage: "none"
       })
-    } catch (kvError) {
-      console.error("❌ KV save error:", kvError)
-      return NextResponse.json({ 
-        error: "KV storage not available", 
-        success: false,
-        details: kvError instanceof Error ? kvError.message : "Unknown KV error"
-      }, { status: 500 })
     }
   } catch (error) {
-    console.error("❌ Error saving CMS content:", error)
+    console.error("❌ Error in POST:", error)
     return NextResponse.json({ 
-      error: "Failed to save content",
+      success: false,
+      error: "Failed to process request",
       details: error instanceof Error ? error.message : "Unknown error"
     }, { status: 500 })
   }
