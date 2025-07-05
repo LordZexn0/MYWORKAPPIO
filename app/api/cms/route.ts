@@ -3,22 +3,27 @@ import { Redis } from "@upstash/redis"
 import fs from "fs"
 import path from "path"
 
-// Initialize Upstash Redis client
+// Initialize Upstash Redis client only if not in build environment
 let redis: Redis | null = null
 
-try {
-  if (process.env.UPSTASH_KV_REST_API_URL && process.env.UPSTASH_KV_REST_API_TOKEN) {
-    console.log("🔧 Initializing Redis client with URL:", process.env.UPSTASH_KV_REST_API_URL)
-    redis = new Redis({
-      url: process.env.UPSTASH_KV_REST_API_URL,
-      token: process.env.UPSTASH_KV_REST_API_TOKEN,
-    })
-    console.log("✅ Redis client initialized successfully")
-  } else {
-    console.log("⚠️ Missing Redis environment variables")
+// Only initialize Redis if we're not in a build environment
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL_ENV) {
+  try {
+    if (process.env.UPSTASH_KV_REST_API_URL && process.env.UPSTASH_KV_REST_API_TOKEN) {
+      console.log("🔧 Initializing Redis client with URL:", process.env.UPSTASH_KV_REST_API_URL)
+      redis = new Redis({
+        url: process.env.UPSTASH_KV_REST_API_URL,
+        token: process.env.UPSTASH_KV_REST_API_TOKEN,
+      })
+      console.log("✅ Redis client initialized successfully")
+    } else {
+      console.log("⚠️ Missing Redis environment variables")
+    }
+  } catch (error) {
+    console.error("❌ Failed to initialize Redis client:", error)
   }
-} catch (error) {
-  console.error("❌ Failed to initialize Redis client:", error)
+} else {
+  console.log("🔧 Skipping Redis initialization during build time")
 }
 
 // Default CMS content - this will be used as the base content
@@ -512,6 +517,12 @@ async function isKVAvailable() {
 
 export async function GET() {
   try {
+    // During build time, return default content to avoid external requests
+    if (process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === 'production') {
+      console.log("🔧 Build time detected, returning default content")
+      return NextResponse.json(defaultContent)
+    }
+
     console.log("🔍 GET CMS: Checking Upstash Redis availability...")
     
     const kvAvailable = await isKVAvailable()
