@@ -10,6 +10,9 @@ import LoadingScreen from "@/app/loading-screen"
 import { AnimatePresence } from "framer-motion"
 import { useCMS } from "@/hooks/use-cms"
 
+// Icon map for contact info
+const iconMap = { MapPin, Phone, Mail, Clock }
+
 export default function ContactPage() {
   const [isLoading, setIsLoading] = useState(true)
   const { content, isLoading: cmsLoading } = useCMS()
@@ -98,16 +101,9 @@ export default function ContactPage() {
 
                   <div className="space-y-6">
                     {contactData.info.map((item, index) => {
-                      const IconComponent = {
-                        MapPin,
-                        Phone,
-                        Mail,
-                        Clock
-                      }[item.icon as keyof typeof { MapPin, Phone, Mail, Clock }]
-                      
+                      const IconComponent = iconMap[item.icon as keyof typeof iconMap]
                       const bgColors = ["bg-[#0F4C81]", "bg-[#FF6B35]", "bg-[#FFCF40]", "bg-[#0F4C81]"]
                       const bgColor = bgColors[index % bgColors.length]
-                      
                       return (
                         <div key={item.title} className="flex items-start space-x-4 p-4 bg-white rounded-lg shadow-md">
                           <div className={`w-12 h-12 ${bgColor} rounded-lg flex items-center justify-center flex-shrink-0`}>
