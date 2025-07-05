@@ -1,5 +1,25 @@
 import { NextResponse, type NextRequest } from "next/server"
-import { kv } from "@vercel/kv"
+import { Redis } from "@upstash/redis"
+import fs from "fs"
+import path from "path"
+
+// Initialize Upstash Redis client
+let redis: Redis | null = null
+
+try {
+  if (process.env.UPSTASH_KV_REST_API_URL && process.env.UPSTASH_KV_REST_API_TOKEN) {
+    console.log("🔧 Initializing Redis client with URL:", process.env.UPSTASH_KV_REST_API_URL)
+    redis = new Redis({
+      url: process.env.UPSTASH_KV_REST_API_URL,
+      token: process.env.UPSTASH_KV_REST_API_TOKEN,
+    })
+    console.log("✅ Redis client initialized successfully")
+  } else {
+    console.log("⚠️ Missing Redis environment variables")
+  }
+} catch (error) {
+  console.error("❌ Failed to initialize Redis client:", error)
+}
 
 // Default CMS content - this will be used as the base content
 const defaultContent = {
@@ -470,10 +490,20 @@ const defaultContent = {
 
 const CMS_KEY = "cms-content"
 
-// Helper function to check if KV is available
+// Helper function to check if Upstash KV is available
 async function isKVAvailable() {
   try {
-    await kv.ping()
+    // Check if Upstash environment variables are set
+    if (!process.env.UPSTASH_KV_REST_API_URL || !process.env.UPSTASH_KV_REST_API_TOKEN) {
+      return false
+    }
+    
+    // Check if Redis client is initialized
+    if (!redis) {
+      return false
+    }
+    
+    await redis.ping()
     return true
   } catch (error) {
     return false
@@ -482,45 +512,57 @@ async function isKVAvailable() {
 
 export async function GET() {
   try {
-    console.log("🔍 GET CMS: Checking KV availability...")
+    console.log("🔍 GET CMS: Checking Upstash Redis availability...")
     
     const kvAvailable = await isKVAvailable()
     
     if (kvAvailable) {
-      console.log("✅ KV is available, attempting to fetch content...")
+      console.log("✅ Upstash Redis is available, attempting to fetch content...")
       // Try to get content from KV store
-      const content = await kv.get(CMS_KEY)
+      const content = await redis!.get(CMS_KEY)
       
       if (content) {
-        console.log("✅ Returning saved content from KV store")
+        console.log("✅ Returning saved content from Upstash Redis")
         return NextResponse.json(content)
       }
       
       // If no content in KV, save default content
-      console.log("💾 No content found, saving default content to KV store...")
-      await kv.set(CMS_KEY, defaultContent)
+      console.log("💾 No content found, saving default content to Upstash Redis...")
+      await redis!.set(CMS_KEY, defaultContent)
       return NextResponse.json(defaultContent)
     } else {
-      console.log("⚠️ KV not available, returning default content")
-      return NextResponse.json(defaultContent)
+      console.log("⚠️ Upstash Redis not available, reading from local file...")
+      try {
+        const filePath = path.join(process.cwd(), "cms", "content.json")
+        const fileContents = fs.readFileSync(filePath, "utf8")
+        const content = JSON.parse(fileContents)
+        console.log("✅ Returning content from local file")
+        return NextResponse.json(content)
+      } catch (fileError) {
+        console.log("📄 No local file found, returning default content")
+        return NextResponse.json(defaultContent)
+      }
     }
   } catch (error) {
     console.error("❌ Error in GET:", error)
+    // Always return default content as fallback
+    console.log("🔄 Returning default content as fallback")
     return NextResponse.json(defaultContent)
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("💾 POST CMS: Checking KV availability...")
+    console.log("💾 POST CMS: Processing content update...")
     const content = await request.json()
     
+    // Try KV first, then fallback to file storage
     const kvAvailable = await isKVAvailable()
     
     if (kvAvailable) {
       console.log("✅ KV is available, saving content...")
       try {
-        await kv.set(CMS_KEY, content)
+        await redis!.set(CMS_KEY, content)
         return NextResponse.json({ 
           success: true, 
           message: "Content saved to KV successfully",
@@ -528,19 +570,28 @@ export async function POST(request: NextRequest) {
         })
       } catch (kvError) {
         console.error("❌ KV save error:", kvError)
-        return NextResponse.json({ 
-          success: false,
-          error: "Failed to save to KV storage",
-          details: kvError instanceof Error ? kvError.message : "Unknown KV error"
-        }, { status: 500 })
+        // Fall through to file storage
       }
-    } else {
-      console.log("⚠️ KV not available, returning success without saving")
+    }
+    
+    // Fallback to file storage
+    console.log("💾 Saving to local file storage...")
+    try {
+      const filePath = path.join(process.cwd(), "cms", "content.json")
+      fs.writeFileSync(filePath, JSON.stringify(content, null, 2), "utf8")
+      
       return NextResponse.json({ 
         success: true, 
-        message: "KV storage not available, but request processed",
-        storage: "none"
+        message: "Content saved to local file successfully",
+        storage: "file"
       })
+    } catch (fileError) {
+      console.error("❌ File save error:", fileError)
+      return NextResponse.json({ 
+        success: false,
+        error: "Failed to save content",
+        details: fileError instanceof Error ? fileError.message : "Unknown file error"
+      }, { status: 500 })
     }
   } catch (error) {
     console.error("❌ Error in POST:", error)

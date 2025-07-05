@@ -1,39 +1,66 @@
 {
   "site": {
     "name": "MyWorkApp.io",
-    "tagline": "Modern Solutions For Tomorrow's Challenges",
-    "description": "End-to-end turnkey solutions for logistics, warehouse management, IoT tracking, and custom workflows.",
     "logo": "/images/logo-transparent.png",
+    "description": "End-to-end turnkey solutions for logistics, warehouse management, IoT tracking, and custom workflows.",
+    "tagline": "Modern Solutions For Tomorrow's Challenges",
     "contact": {
+      "address": "123 Business District\nTech City, TC 12345",
       "phone": "+1 (555) 123-4567",
       "email": "hello@myworkapp.io",
-      "address": "123 Business District\nTech City, TC 12345",
       "businessHours": "Mon - Fri: 9:00 AM - 6:00 PM\nSat - Sun: Closed"
     }
   },
   "navigation": {
     "items": [
-      { "href": "/", "label": "Home" },
-      { "href": "/services", "label": "Services" },
-      { "href": "/why-us", "label": "Why Us" },
-      { "href": "/case-studies", "label": "Case Studies" },
-      { "href": "/blog", "label": "Blog" },
-      { "href": "/contact", "label": "Contact" }
+      {
+        "href": "/",
+        "label": "Home"
+      },
+      {
+        "href": "/services",
+        "label": "Services"
+      },
+      {
+        "href": "/why-us",
+        "label": "Why Us"
+      },
+      {
+        "href": "/case-studies",
+        "label": "Case Studies"
+      },
+      {
+        "href": "/blog",
+        "label": "Blog"
+      },
+      {
+        "href": "/contact",
+        "label": "Contact"
+      }
     ],
     "ctaButton": "Get Started"
   },
   "home": {
     "hero": {
-      "title": "MyWorkApp.io",
-      "subtitle": "Modern Solutions For Tomorrow's Challenges",
+      "title": "Test Update - 3:14:36 PM",
+      "subtitle": "hello",
       "description": "Transform your operations with our turnkey solutions for logistics, warehouse management, IoT tracking, and custom digital workflows.",
       "primaryButton": "Explore Our Services",
       "secondaryButton": "View Case Studies"
     },
     "stats": [
-      { "number": "500+", "label": "Projects Completed" },
-      { "number": "99%", "label": "Client Satisfaction" },
-      { "number": "24/7", "label": "Support Available" }
+      {
+        "number": "500+",
+        "label": "Projects Completed"
+      },
+      {
+        "number": "99%",
+        "label": "Client Satisfaction"
+      },
+      {
+        "number": "24/7",
+        "label": "Support Available"
+      }
     ],
     "overview": {
       "title": "Turnkey Solutions That Work",
@@ -71,7 +98,11 @@
           "Auditable logs for compliance and transparency",
           "Immediate time and cost savings with minimal onboarding"
         ],
-        "benefits": ["Reduce operational costs by 30%", "Improve delivery times by 50%", "99.9% inventory accuracy"],
+        "benefits": [
+          "Reduce operational costs by 30%",
+          "Improve delivery times by 50%",
+          "99.9% inventory accuracy"
+        ],
         "image": "/images/logistics.png"
       },
       {
@@ -86,7 +117,11 @@
           "Automated reporting with zero configuration",
           "Simplified asset decommissioning"
         ],
-        "benefits": ["Increase warehouse efficiency by 40%", "Reduce picking errors by 95%", "Real-time visibility"],
+        "benefits": [
+          "Increase warehouse efficiency by 40%",
+          "Reduce picking errors by 95%",
+          "Real-time visibility"
+        ],
         "image": "/images/digitalwarehouse.png"
       },
       {
@@ -101,7 +136,11 @@
           "Real-time condition and location updates",
           "Scalable architecture for growing asset networks"
         ],
-        "benefits": ["Track 10,000+ assets simultaneously", "Prevent loss and theft", "Automated compliance reporting"],
+        "benefits": [
+          "Track 10,000+ assets simultaneously",
+          "Prevent loss and theft",
+          "Automated compliance reporting"
+        ],
         "image": "/images/iotsensors.png"
       },
       {
@@ -116,7 +155,11 @@
           "Smooth integration with financial and logistics platforms",
           "Easy deployment and internal adoption"
         ],
-        "benefits": ["Reduce manual processes by 80%", "Faster approvals and decisions", "Seamless integrations"],
+        "benefits": [
+          "Reduce manual processes by 80%",
+          "Faster approvals and decisions",
+          "Seamless integrations"
+        ],
         "image": "/images/customdigital.png"
       }
     ],
@@ -133,10 +176,26 @@
       "description": "We don't just build software – we deliver complete solutions that transform your business operations from day one."
     },
     "stats": [
-      { "number": "500+", "label": "Successful Projects", "color": "text-[#FF6B35]" },
-      { "number": "99%", "label": "Client Satisfaction", "color": "text-[#FFCF40]" },
-      { "number": "50%", "label": "Average Efficiency Gain", "color": "text-[#0F4C81]" },
-      { "number": "24/7", "label": "Support Available", "color": "text-[#FF6B35]" }
+      {
+        "number": "500+",
+        "label": "Successful Projects",
+        "color": "text-[#FF6B35]"
+      },
+      {
+        "number": "99%",
+        "label": "Client Satisfaction",
+        "color": "text-[#FFCF40]"
+      },
+      {
+        "number": "50%",
+        "label": "Average Efficiency Gain",
+        "color": "text-[#0F4C81]"
+      },
+      {
+        "number": "24/7",
+        "label": "Support Available",
+        "color": "text-[#FF6B35]"
+      }
     ],
     "reasons": {
       "title": "What Sets Us Apart",
@@ -229,7 +288,11 @@
           "Real-time visibility across entire supply chain"
         ],
         "image": "/images/case-study-1.jpg",
-        "tags": ["Logistics", "IoT", "Warehouse Management"]
+        "tags": [
+          "Logistics",
+          "IoT",
+          "Warehouse Management"
+        ]
       },
       {
         "id": 2,
@@ -247,7 +310,11 @@
           "Customer satisfaction increased to 98%"
         ],
         "image": "/images/case-study-2.jpg",
-        "tags": ["Warehouse Management", "Automation", "Scalability"]
+        "tags": [
+          "Warehouse Management",
+          "Automation",
+          "Scalability"
+        ]
       },
       {
         "id": 3,
@@ -265,7 +332,11 @@
           "30% improvement in equipment utilization"
         ],
         "image": "/images/case-study-3.jpg",
-        "tags": ["IoT", "Healthcare", "Asset Tracking"]
+        "tags": [
+          "IoT",
+          "Healthcare",
+          "Asset Tracking"
+        ]
       },
       {
         "id": 4,
@@ -283,16 +354,36 @@
           "Ability to scale operations without adding staff"
         ],
         "image": "/images/case-study-4.jpg",
-        "tags": ["Custom Workflows", "Automation", "Integration"]
+        "tags": [
+          "Custom Workflows",
+          "Automation",
+          "Integration"
+        ]
       }
     ],
     "stats": {
       "title": "Proven Results Across Industries",
       "items": [
-        { "number": "500+", "label": "Projects Completed", "color": "text-[#FF6B35]" },
-        { "number": "40%", "label": "Average Cost Reduction", "color": "text-[#FFCF40]" },
-        { "number": "99%", "label": "Client Satisfaction", "color": "text-[#0F4C81]" },
-        { "number": "50%", "label": "Efficiency Improvement", "color": "text-[#FF6B35]" }
+        {
+          "number": "500+",
+          "label": "Projects Completed",
+          "color": "text-[#FF6B35]"
+        },
+        {
+          "number": "40%",
+          "label": "Average Cost Reduction",
+          "color": "text-[#FFCF40]"
+        },
+        {
+          "number": "99%",
+          "label": "Client Satisfaction",
+          "color": "text-[#0F4C81]"
+        },
+        {
+          "number": "50%",
+          "label": "Efficiency Improvement",
+          "color": "text-[#FF6B35]"
+        }
       ]
     },
     "cta": {
@@ -463,19 +554,51 @@
     "quickLinks": {
       "title": "Quick Links",
       "items": [
-        { "href": "/", "label": "Home" },
-        { "href": "/services", "label": "Services" },
-        { "href": "/why-us", "label": "Why Us" },
-        { "href": "/case-studies", "label": "Case Studies" },
-        { "href": "/blog", "label": "Blog" },
-        { "href": "/contact", "label": "Contact" }
+        {
+          "href": "/",
+          "label": "Home"
+        },
+        {
+          "href": "/services",
+          "label": "Services"
+        },
+        {
+          "href": "/why-us",
+          "label": "Why Us"
+        },
+        {
+          "href": "/case-studies",
+          "label": "Case Studies"
+        },
+        {
+          "href": "/blog",
+          "label": "Blog"
+        },
+        {
+          "href": "/contact",
+          "label": "Contact"
+        }
       ]
     },
     "contact": {
       "title": "Contact",
-      "items": ["123 Business District", "Tech City, TC 12345", "+1 (555) 123-4567", "hello@myworkapp.io"]
+      "items": [
+        "123 Business District",
+        "Tech City, TC 12345",
+        "+1 (555) 123-4567",
+        "hello@myworkapp.io"
+      ]
     },
-    "legal": [{ "href": "/privacy", "label": "Privacy Policy" }, { "href": "/terms", "label": "Terms of Service" }],
+    "legal": [
+      {
+        "href": "/privacy",
+        "label": "Privacy Policy"
+      },
+      {
+        "href": "/terms",
+        "label": "Terms of Service"
+      }
+    ],
     "copyright": "© {year} MyWorkApp.io. All rights reserved."
   },
   "supplyChain": {
@@ -508,53 +631,5 @@
       }
     ],
     "conclusion": "Our integrated platform connects every step of your supply chain for maximum efficiency."
-  },
-  "testimonials": {
-    "title": "What Our Clients Say",
-    "description": "Don't just take our word for it - hear from the companies we've helped transform their operations.",
-    "items": [
-      {
-        "id": 1,
-        "name": "Sarah Mitchell",
-        "company": "TechCorp Industries",
-        "position": "Operations Director",
-        "content": "MyWorkApp.io transformed our entire supply chain. We saw a 40% reduction in operational costs within the first quarter of implementation.",
-        "image": "/uploads/testimonial-1.jpg",
-        "rating": 5
-      },
-      {
-        "id": 2,
-        "name": "David Chen",
-        "company": "Global Logistics Solutions",
-        "position": "CEO",
-        "content": "The turnkey solution was exactly what we needed. Implementation was smooth and the results were immediate.",
-        "image": "/uploads/testimonial-2.jpg",
-        "rating": 5
-      },
-      {
-        "id": 3,
-        "name": "Maria Rodriguez",
-        "company": "E-Commerce Giant",
-        "position": "VP of Operations",
-        "content": "We scaled our operations 300% without adding staff thanks to their automation solutions. Incredible ROI.",
-        "image": "/uploads/testimonial-3.jpg",
-        "rating": 5
-      }
-    ]
-  },
-  "pages": {
-    "privacy": {
-      "title": "Privacy Policy",
-      "content": "# Privacy Policy\n\nLast updated: [Date]\n\nYour privacy is important to us. This privacy policy explains what personal data MyWorkApp.io collects from you, how we use it, and what rights you have in relation to it.\n\n## Information We Collect\n\nWe collect information you provide directly to us, such as when you:\n- Contact us through our website\n- Request a consultation\n- Subscribe to our newsletter\n\n## How We Use Your Information\n\nWe use the information we collect to:\n- Respond to your inquiries\n- Provide customer support\n- Send you updates about our services\n- Improve our website and services\n\n## Data Security\n\nWe implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.\n\n## Contact Us\n\nIf you have any questions about this privacy policy, please contact us at privacy@myworkapp.io."
-    },
-    "terms": {
-      "title": "Terms of Service",
-      "content": "# Terms of Service\n\nLast updated: [Date]\n\nThese terms of service govern your use of our website and services.\n\n## Acceptance of Terms\n\nBy accessing and using this website, you accept and agree to be bound by the terms and provision of this agreement.\n\n## Use License\n\nPermission is granted to temporarily download one copy of the materials on MyWorkApp.io's website for personal, non-commercial transitory viewing only.\n\n## Disclaimer\n\nThe materials on MyWorkApp.io's website are provided on an 'as is' basis. MyWorkApp.io makes no warranties, expressed or implied.\n\n## Contact Information\n\nFor questions about these terms, contact us at legal@myworkapp.io."
-    }
-  },
-  "search": {
-    "placeholder": "Search our content...",
-    "noResults": "No results found",
-    "categories": ["All", "Services", "Case Studies", "Blog", "Pages"]
   }
 }

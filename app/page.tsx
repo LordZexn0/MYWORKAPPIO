@@ -10,9 +10,12 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, CheckCircle } from "lucide-react"
 import LoadingScreen from "@/app/loading-screen"
 import { AnimatePresence } from "framer-motion"
+import { useCMS } from "@/hooks/use-cms"
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true)
+  const { content } = useCMS()
+  const { overview, cta } = content.home
 
   const handleLoadingComplete = () => {
     setIsLoading(false)
@@ -44,20 +47,15 @@ export default function Home() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-4 font-heading text-blue-900">
-                Turnkey Solutions That Work
+                {overview.title}
               </h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                We deliver complete, ready-to-use systems that transform your operations from day one.
+                {overview.description}
               </p>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {[
-                "Logistics & Supply Chain",
-                "Digital Warehouse Management",
-                "IoT Sensors & Tracking",
-                "Custom Digital Workflows",
-              ].map((service, index) => (
+              {overview.services.map((service, index) => (
                 <div
                   key={service}
                   className="text-center p-6 border border-gray-200 hover:border-yellow-400 transition-colors"
@@ -74,7 +72,7 @@ export default function Home() {
             <div className="text-center mt-12">
               <Link href="/services">
                 <Button className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-none">
-                  Learn More About Our Services
+                  {overview.buttonText}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
@@ -89,15 +87,15 @@ export default function Home() {
         <section className="py-20 px-4 md:px-8 bg-gray-50">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 font-heading text-blue-900">
-              Ready to Transform Your Operations?
+              {cta.title}
             </h2>
             <p className="text-lg text-gray-600 mb-8">
-              Get started with a free consultation and see how our turnkey solutions can streamline your business.
+              {cta.description}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/contact">
                 <Button className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-none">
-                  Get Free Consultation
+                  {cta.primaryButton}
                 </Button>
               </Link>
               <Link href="/why-us">
@@ -105,7 +103,7 @@ export default function Home() {
                   variant="outline"
                   className="border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white px-8 py-4 rounded-none"
                 >
-                  Why Choose Us
+                  {cta.secondaryButton}
                 </Button>
               </Link>
             </div>

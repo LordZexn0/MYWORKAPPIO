@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 interface CMSContent {
   site: {
@@ -31,6 +31,18 @@ interface CMSContent {
       number: string
       label: string
     }>
+    overview: {
+      title: string
+      description: string
+      services: string[]
+      buttonText: string
+    }
+    cta: {
+      title: string
+      description: string
+      primaryButton: string
+      secondaryButton: string
+    }
   }
   footer: {
     description: string
@@ -92,6 +104,23 @@ const defaultContent: CMSContent = {
       { number: "99%", label: "Client Satisfaction" },
       { number: "24/7", label: "Support Available" },
     ],
+    overview: {
+      title: "Turnkey Solutions That Work",
+      description: "We deliver complete, ready-to-use systems that transform your operations from day one.",
+      services: [
+        "Logistics & Supply Chain",
+        "Digital Warehouse Management",
+        "IoT Sensors & Tracking",
+        "Custom Digital Workflows",
+      ],
+      buttonText: "Learn More About Our Services",
+    },
+    cta: {
+      title: "Ready to Transform Your Operations?",
+      description: "Get started with a free consultation and see how our turnkey solutions can streamline your business.",
+      primaryButton: "Get Free Consultation",
+      secondaryButton: "Why Choose Us",
+    },
   },
   footer: {
     description:
@@ -119,12 +148,73 @@ const defaultContent: CMSContent = {
   },
 }
 
+// Global cache for CMS content
+let cmsCache: CMSContent | null = null
+let cmsCachePromise: Promise<CMSContent> | null = null
+let cmsCacheTimestamp = 0
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+
 export function useCMS() {
-  const [isLoading] = useState(false)
+  const [content, setContent] = useState<CMSContent>(defaultContent)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        // Check if we have valid cached data
+        const now = Date.now()
+        if (cmsCache && (now - cmsCacheTimestamp) < CACHE_DURATION) {
+          setContent(cmsCache)
+          setIsLoading(false)
+          return
+        }
+
+        // Check if there's already a request in progress
+        if (cmsCachePromise) {
+          const data = await cmsCachePromise
+          setContent(data)
+          setIsLoading(false)
+          return
+        }
+
+        setIsLoading(true)
+        
+        // Create new request
+        cmsCachePromise = (async () => {
+          const response = await fetch("/api/cms")
+          if (!response.ok) {
+            throw new Error("Failed to fetch CMS content")
+          }
+          const data = await response.json()
+          
+          // Update cache
+          cmsCache = data
+          cmsCacheTimestamp = now
+          
+          return data
+        })()
+
+        const data = await cmsCachePromise
+        setContent(data)
+        setError(null)
+      } catch (err) {
+        console.error("Error fetching CMS content:", err)
+        setError(err instanceof Error ? err.message : "Unknown error")
+        // Keep using default content as fallback
+      } finally {
+        setIsLoading(false)
+        cmsCachePromise = null
+      }
+    }
+
+    fetchContent()
+  }, [])
 
   return {
-    content: defaultContent,
+    content,
     isLoading,
+    error,
   }
 }
 
@@ -135,4 +225,11 @@ export function useCMSSection<K extends keyof CMSContent>(section: K) {
     content: content[section],
     isLoading,
   }
+}
+
+// Function to clear cache (useful when content is updated from admin)
+export function clearCMSCache() {
+  cmsCache = null
+  cmsCachePromise = null
+  cmsCacheTimestamp = 0
 }

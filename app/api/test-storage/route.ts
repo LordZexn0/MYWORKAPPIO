@@ -1,60 +1,51 @@
 import { NextResponse } from "next/server"
-import { kv } from "@vercel/kv"
+import { Redis } from "@upstash/redis"
 
 export async function GET() {
-  const testKey = "storage-test"
-  const testData = {
-    timestamp: new Date().toISOString(),
-    test: "KV Storage is working!",
-    randomNumber: Math.random()
-  }
-
   try {
-    console.log("🧪 Testing KV Storage...")
+    console.log("🧪 Test Storage: Starting test...")
     
-    // Test 1: Write data
-    console.log("📝 Step 1: Writing test data to KV...")
-    await kv.set(testKey, testData)
-    console.log("✅ Test data written successfully")
+    // Check environment variables
+    const url = process.env.UPSTASH_KV_REST_API_URL
+    const token = process.env.UPSTASH_KV_REST_API_TOKEN
     
-    // Test 2: Read data back
-    console.log("📖 Step 2: Reading test data from KV...")
-    const retrievedData = await kv.get(testKey)
-    console.log("📊 Retrieved data:", retrievedData)
+    console.log("🔧 Test Storage: Environment check:")
+    console.log("  - URL exists:", !!url)
+    console.log("  - Token exists:", !!token)
+    console.log("  - URL value:", url)
     
-    // Test 3: Verify data integrity
-    const isMatch = JSON.stringify(retrievedData) === JSON.stringify(testData)
-    console.log("🔍 Step 3: Data integrity check:", isMatch ? "✅ PASS" : "❌ FAIL")
+    if (!url || !token) {
+      throw new Error("Missing environment variables")
+    }
     
-    // Test 4: Check CMS data
-    console.log("🗂️  Step 4: Checking CMS data...")
-    const cmsData = await kv.get("cms-content")
-    const cmsExists = !!cmsData
-    console.log("📋 CMS data exists:", cmsExists ? "✅ YES" : "❌ NO")
+    // Initialize Redis client
+    console.log("🔧 Test Storage: Initializing Redis client...")
+    const redis = new Redis({
+      url: url,
+      token: token,
+    })
     
-    // Clean up test data
-    await kv.del(testKey)
-    console.log("🧹 Test data cleaned up")
+    console.log("✅ Test Storage: Redis client created")
+    
+    // Test ping
+    console.log("🔧 Test Storage: Testing ping...")
+    await redis.ping()
+    console.log("✅ Test Storage: Ping successful")
     
     return NextResponse.json({
       success: true,
-      message: "KV Storage is working correctly!",
-      tests: {
-        write: true,
-        read: !!retrievedData,
-        integrity: isMatch,
-        cmsDataExists: cmsExists
-      },
-      testData: retrievedData,
+      message: "Upstash Redis connection successful!",
       timestamp: new Date().toISOString()
     })
     
   } catch (error) {
-    console.error("❌ KV Storage test failed:", error)
+    console.error("❌ Test Storage: Error details:", error)
+    
     return NextResponse.json({
       success: false,
-      error: "KV Storage test failed",
+      error: "Upstash Redis Storage test failed",
       details: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
       timestamp: new Date().toISOString()
     }, { status: 500 })
   }

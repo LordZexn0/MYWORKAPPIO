@@ -58,17 +58,26 @@ export default function TestStoragePage() {
       const postResult = await postResponse.json()
       console.log('CMS POST response:', postResult)
       
+      // Verify the data was actually saved by fetching it again
+      console.log('Verifying saved data...')
+      const verifyResponse = await fetch('/api/cms')
+      const verifyData = await verifyResponse.json()
+      
+      // Check if the test update was actually saved
+      const isVerified = verifyData.home?.hero?.title === testUpdate.home.hero.title
+      
       setTestResult({
         success: true,
         message: 'CMS API test completed',
         tests: {
           get: getResponse.ok,
           post: postResponse.ok,
-          verified: postResult.verified
+          verified: isVerified
         },
         details: {
           get: getData ? 'Data retrieved successfully' : 'No data retrieved',
           post: postResult.message || 'Save completed',
+          verified: isVerified ? 'Data verified successfully' : 'Data verification failed',
           dataSize: JSON.stringify(getData).length
         }
       })
