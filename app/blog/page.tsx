@@ -8,94 +8,24 @@ import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import LoadingScreen from "@/app/loading-screen"
 import Link from "next/link"
-
-const blogPosts = [
-  {
-    id: 1,
-    title: "The Future of Supply Chain Management: 5 Trends to Watch in 2024",
-    excerpt:
-      "Discover the emerging technologies and strategies that are reshaping supply chain operations and how your business can stay ahead of the curve.",
-    author: "Sarah Johnson",
-    date: "March 15, 2024",
-    readTime: "8 min read",
-    category: "Supply Chain",
-    image: "/images/blog-1.jpg",
-    featured: true,
-  },
-  {
-    id: 2,
-    title: "How IoT Sensors Are Revolutionizing Warehouse Operations",
-    excerpt:
-      "Learn how Internet of Things technology is providing unprecedented visibility and control over warehouse processes.",
-    author: "Michael Chen",
-    date: "March 10, 2024",
-    readTime: "6 min read",
-    category: "IoT Technology",
-    image: "/images/blog-2.jpg",
-    featured: false,
-  },
-  {
-    id: 3,
-    title: "Digital Transformation in Logistics: A Complete Guide",
-    excerpt:
-      "A comprehensive look at how digital technologies are transforming logistics operations and what it means for your business.",
-    author: "Emily Rodriguez",
-    date: "March 5, 2024",
-    readTime: "12 min read",
-    category: "Digital Transformation",
-    image: "/images/blog-3.jpg",
-    featured: false,
-  },
-  {
-    id: 4,
-    title: "Reducing Operational Costs Through Automation",
-    excerpt:
-      "Practical strategies for implementing automation in your operations to reduce costs and improve efficiency.",
-    author: "David Kim",
-    date: "February 28, 2024",
-    readTime: "7 min read",
-    category: "Automation",
-    image: "/images/blog-4.jpg",
-    featured: false,
-  },
-  {
-    id: 5,
-    title: "Best Practices for Implementing Turnkey Solutions",
-    excerpt: "Essential tips and strategies for successfully implementing turnkey solutions in your organization.",
-    author: "Lisa Thompson",
-    date: "February 22, 2024",
-    readTime: "9 min read",
-    category: "Implementation",
-    image: "/images/blog-5.jpg",
-    featured: false,
-  },
-  {
-    id: 6,
-    title: "The ROI of Digital Warehouse Management Systems",
-    excerpt: "Understanding the financial benefits and return on investment of modern warehouse management solutions.",
-    author: "Robert Wilson",
-    date: "February 15, 2024",
-    readTime: "10 min read",
-    category: "ROI Analysis",
-    image: "/images/blog-6.jpg",
-    featured: false,
-  },
-]
-
-const categories = [
-  "All",
-  "Supply Chain",
-  "IoT Technology",
-  "Digital Transformation",
-  "Automation",
-  "Implementation",
-  "ROI Analysis",
-]
+import { useCMS } from "@/hooks/use-cms"
 
 export default function BlogPage() {
   const [isLoading, setIsLoading] = useState(true)
+  const { content } = useCMS()
+  const { hero, posts: blogPosts, newsletter } = content.blog
   const featuredPost = blogPosts.find((post) => post.featured)
   const regularPosts = blogPosts.filter((post) => !post.featured)
+
+  const categories = [
+    "All",
+    "Supply Chain",
+    "IoT Technology",
+    "Digital Transformation",
+    "Automation",
+    "Implementation",
+    "ROI Analysis",
+  ]
 
   const handleLoadingComplete = () => {
     setIsLoading(false)
@@ -124,10 +54,9 @@ export default function BlogPage() {
         <section className="py-20 px-4 md:px-8 bg-gradient-to-br from-blue-50 to-orange-50">
           <div className="max-w-4xl mx-auto text-center">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-              <h1 className="text-4xl md:text-6xl font-bold mb-6 font-heading text-[#0F4C81]">Industry Insights</h1>
+              <h1 className="text-4xl md:text-6xl font-bold mb-6 font-heading text-[#0F4C81]">{hero.title}</h1>
               <p className="text-xl text-gray-600 mb-8">
-                Stay ahead with the latest trends, best practices, and insights in logistics, warehouse management, and
-                digital transformation.
+                {hero.description}
               </p>
             </motion.div>
           </div>
@@ -274,9 +203,9 @@ export default function BlogPage() {
         <section className="py-20 px-4 md:px-8 bg-gradient-to-br from-[#0F4C81] to-[#FF6B35]">
           <div className="max-w-4xl mx-auto text-center">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">Stay Updated with Industry Insights</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">{newsletter.title}</h2>
               <p className="text-xl text-white/90 mb-8">
-                Get the latest articles, trends, and best practices delivered to your inbox.
+                {newsletter.description}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
                 <input
@@ -285,7 +214,7 @@ export default function BlogPage() {
                   className="flex-1 px-4 py-3 rounded-none border-0 focus:outline-none focus:ring-2 focus:ring-white"
                 />
                 <Button className="bg-white text-[#0F4C81] hover:bg-gray-100 px-6 py-3 rounded-none font-medium">
-                  Subscribe
+                  {newsletter.buttonText}
                 </Button>
               </div>
             </motion.div>

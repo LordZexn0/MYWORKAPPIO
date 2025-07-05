@@ -27,7 +27,9 @@ import {
   Check,
   X,
   Eye,
-  Trash2
+  Trash2,
+  BarChart3,
+  ArrowRight
 } from "lucide-react"
 import Image from "next/image"
 
@@ -40,7 +42,10 @@ interface CMSData {
     tagline?: string
     contact?: any
   }
-  navigation?: any
+  navigation?: {
+    items?: any[]
+    ctaButton?: string
+  }
   home?: {
     hero?: {
       title?: string
@@ -50,27 +55,101 @@ interface CMSData {
       secondaryButton?: string
     }
     stats?: any[]
-    overview?: any
-    cta?: any
+    overview?: {
+      title?: string
+      description?: string
+      services?: string[]
+      buttonText?: string
+    }
+    cta?: {
+      title?: string
+      description?: string
+      primaryButton?: string
+      secondaryButton?: string
+    }
   }
   services?: {
     hero?: any
     items?: any[]
-    cta?: any
+    cta?: {
+      title?: string
+      description?: string
+      primaryButton?: string
+      secondaryButton?: string
+    }
   }
-  whyUs?: any
+  whyUs?: {
+    hero?: any
+    stats?: any[]
+    reasons?: {
+      title?: string
+      description?: string
+      items?: any[]
+    }
+    process?: {
+      title?: string
+      description?: string
+      steps?: any[]
+    }
+    cta?: {
+      title?: string
+      description?: string
+      primaryButton?: string
+      secondaryButton?: string
+    }
+  }
   caseStudies?: {
     hero?: any
     items?: any[]
+    stats?: {
+      items?: any[]
+    }
+    cta?: {
+      title?: string
+      description?: string
+      primaryButton?: string
+      secondaryButton?: string
+    }
   }
   blog?: {
     hero?: any
     posts?: any[]
-    newsletter?: any
+    newsletter?: {
+      title?: string
+      description?: string
+      buttonText?: string
+    }
   }
-  contact?: any
-  footer?: any
-  supplyChain?: any
+  contact?: {
+    hero?: any
+    info?: any[]
+    form?: {
+      title?: string
+      fields?: any
+      submitButton?: string
+      submittingText?: string
+      successTitle?: string
+      successMessage?: string
+      successButton?: string
+    }
+  }
+  footer?: {
+    description?: string
+    quickLinks?: {
+      items?: any[]
+    }
+    contact?: {
+      items?: string[]
+    }
+    legal?: any[]
+    copyright?: string
+  }
+  supplyChain?: {
+    title?: string
+    description?: string
+    steps?: any[]
+    conclusion?: string
+  }
   [key: string]: any
 }
 
@@ -425,6 +504,7 @@ export default function AdminPage() {
 
           {/* Site Settings Tab */}
           <TabsContent value="site" className="space-y-6">
+            {/* Site Configuration */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
@@ -483,10 +563,362 @@ export default function AdminPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Navigation */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <FileText className="h-5 w-5" />
+                  <span>Navigation</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <Label htmlFor="navCTAButton">Navigation CTA Button Text</Label>
+                  <Input
+                    id="navCTAButton"
+                    value={data.navigation?.ctaButton || ""}
+                    onChange={(e) => updateData(["navigation", "ctaButton"], e.target.value)}
+                    placeholder="Get Started"
+                  />
+                </div>
+
+                <Separator />
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Navigation Items</h3>
+                  {(data.navigation?.items || []).map((item: any, index: number) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        value={item.href || ""}
+                        onChange={(e) => {
+                          const newItems = [...(data.navigation?.items || [])];
+                          newItems[index] = { ...item, href: e.target.value };
+                          updateData(["navigation", "items"], newItems);
+                        }}
+                        placeholder="/services"
+                      />
+                      <Input
+                        value={item.label || ""}
+                        onChange={(e) => {
+                          const newItems = [...(data.navigation?.items || [])];
+                          newItems[index] = { ...item, label: e.target.value };
+                          updateData(["navigation", "items"], newItems);
+                        }}
+                        placeholder="Services"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const newItems = [...(data.navigation?.items || [])];
+                          newItems.splice(index, 1);
+                          updateData(["navigation", "items"], newItems);
+                        }}
+                        className="text-red-500"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newItems = [...(data.navigation?.items || []), { href: "", label: "" }];
+                      updateData(["navigation", "items"], newItems);
+                    }}
+                  >
+                    Add Navigation Item
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Footer */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <FileText className="h-5 w-5" />
+                  <span>Footer</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <Label htmlFor="footerDescription">Footer Description</Label>
+                  <Textarea
+                    id="footerDescription"
+                    value={data.footer?.description || ""}
+                    onChange={(e) => updateData(["footer", "description"], e.target.value)}
+                    placeholder="Transforming operations with turnkey solutions..."
+                    rows={3}
+                  />
+                </div>
+
+                <Separator />
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Quick Links</h3>
+                  {(data.footer?.quickLinks?.items || []).map((link: any, index: number) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        value={link.href || ""}
+                        onChange={(e) => {
+                          const newItems = [...(data.footer?.quickLinks?.items || [])];
+                          newItems[index] = { ...link, href: e.target.value };
+                          updateData(["footer", "quickLinks", "items"], newItems);
+                        }}
+                        placeholder="/services"
+                      />
+                      <Input
+                        value={link.label || ""}
+                        onChange={(e) => {
+                          const newItems = [...(data.footer?.quickLinks?.items || [])];
+                          newItems[index] = { ...link, label: e.target.value };
+                          updateData(["footer", "quickLinks", "items"], newItems);
+                        }}
+                        placeholder="Services"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const newItems = [...(data.footer?.quickLinks?.items || [])];
+                          newItems.splice(index, 1);
+                          updateData(["footer", "quickLinks", "items"], newItems);
+                        }}
+                        className="text-red-500"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newItems = [...(data.footer?.quickLinks?.items || []), { href: "", label: "" }];
+                      updateData(["footer", "quickLinks", "items"], newItems);
+                    }}
+                  >
+                    Add Quick Link
+                  </Button>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Contact Information</h3>
+                  {(data.footer?.contact?.items || []).map((item: string, index: number) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        value={item || ""}
+                        onChange={(e) => {
+                          const newItems = [...(data.footer?.contact?.items || [])];
+                          newItems[index] = e.target.value;
+                          updateData(["footer", "contact", "items"], newItems);
+                        }}
+                        placeholder="Contact information"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const newItems = [...(data.footer?.contact?.items || [])];
+                          newItems.splice(index, 1);
+                          updateData(["footer", "contact", "items"], newItems);
+                        }}
+                        className="text-red-500"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newItems = [...(data.footer?.contact?.items || []), ""];
+                      updateData(["footer", "contact", "items"], newItems);
+                    }}
+                  >
+                    Add Contact Item
+                  </Button>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Legal Links</h3>
+                  {(data.footer?.legal || []).map((link: any, index: number) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        value={link.href || ""}
+                        onChange={(e) => {
+                          const newLegal = [...(data.footer?.legal || [])];
+                          newLegal[index] = { ...link, href: e.target.value };
+                          updateData(["footer", "legal"], newLegal);
+                        }}
+                        placeholder="/privacy"
+                      />
+                      <Input
+                        value={link.label || ""}
+                        onChange={(e) => {
+                          const newLegal = [...(data.footer?.legal || [])];
+                          newLegal[index] = { ...link, label: e.target.value };
+                          updateData(["footer", "legal"], newLegal);
+                        }}
+                        placeholder="Privacy Policy"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const newLegal = [...(data.footer?.legal || [])];
+                          newLegal.splice(index, 1);
+                          updateData(["footer", "legal"], newLegal);
+                        }}
+                        className="text-red-500"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newLegal = [...(data.footer?.legal || []), { href: "", label: "" }];
+                      updateData(["footer", "legal"], newLegal);
+                    }}
+                  >
+                    Add Legal Link
+                  </Button>
+                </div>
+
+                <div>
+                  <Label htmlFor="copyright">Copyright Text</Label>
+                  <Input
+                    id="copyright"
+                    value={data.footer?.copyright || ""}
+                    onChange={(e) => updateData(["footer", "copyright"], e.target.value)}
+                    placeholder="© {year} MyWorkApp.io. All rights reserved."
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Supply Chain Animation */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Settings className="h-5 w-5" />
+                  <span>Supply Chain Animation</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="supplyChainTitle">Title</Label>
+                    <Input
+                      id="supplyChainTitle"
+                      value={data.supplyChain?.title || ""}
+                      onChange={(e) => updateData(["supplyChain", "title"], e.target.value)}
+                      placeholder="Our End-to-End Supply Chain Solution"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="supplyChainDescription">Description</Label>
+                    <Textarea
+                      id="supplyChainDescription"
+                      value={data.supplyChain?.description || ""}
+                      onChange={(e) => updateData(["supplyChain", "description"], e.target.value)}
+                      placeholder="From warehouse to delivery..."
+                      rows={3}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="supplyChainConclusion">Conclusion</Label>
+                    <Input
+                      id="supplyChainConclusion"
+                      value={data.supplyChain?.conclusion || ""}
+                      onChange={(e) => updateData(["supplyChain", "conclusion"], e.target.value)}
+                      placeholder="Our integrated platform connects every step..."
+                    />
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold">Supply Chain Steps</h3>
+                  {(data.supplyChain?.steps || []).map((step: any, index: number) => (
+                    <Card key={index} className="border-l-4 border-l-blue-500">
+                      <CardHeader>
+                        <CardTitle className="text-base">Step {index + 1}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <Label>Icon Name</Label>
+                            <Input
+                              value={step.icon || ""}
+                              onChange={(e) => {
+                                const newSteps = [...(data.supplyChain?.steps || [])];
+                                newSteps[index] = { ...step, icon: e.target.value };
+                                updateData(["supplyChain", "steps"], newSteps);
+                              }}
+                              placeholder="Warehouse"
+                            />
+                          </div>
+                          <div>
+                            <Label>Title</Label>
+                            <Input
+                              value={step.title || ""}
+                              onChange={(e) => {
+                                const newSteps = [...(data.supplyChain?.steps || [])];
+                                newSteps[index] = { ...step, title: e.target.value };
+                                updateData(["supplyChain", "steps"], newSteps);
+                              }}
+                              placeholder="Warehouse"
+                            />
+                          </div>
+                          <div>
+                            <Label>Description</Label>
+                            <Input
+                              value={step.description || ""}
+                              onChange={(e) => {
+                                const newSteps = [...(data.supplyChain?.steps || [])];
+                                newSteps[index] = { ...step, description: e.target.value };
+                                updateData(["supplyChain", "steps"], newSteps);
+                              }}
+                              placeholder="Inventory tracking and management"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label>Color Class</Label>
+                          <Input
+                            value={step.color || ""}
+                            onChange={(e) => {
+                              const newSteps = [...(data.supplyChain?.steps || [])];
+                              newSteps[index] = { ...step, color: e.target.value };
+                              updateData(["supplyChain", "steps"], newSteps);
+                            }}
+                            placeholder="text-[#0F4C81]"
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Home Tab */}
           <TabsContent value="home" className="space-y-6">
+            {/* Hero Section */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
@@ -540,6 +972,176 @@ export default function AdminPage() {
                       value={data.home?.hero?.secondaryButton || ""}
                       onChange={(e) => updateData(["home", "hero", "secondaryButton"], e.target.value)}
                       placeholder="View Our Services"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Stats Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <BarChart3 className="h-5 w-5" />
+                  <span>Stats Section</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {(data.home?.stats || []).map((stat: any, index: number) => (
+                    <div key={index} className="space-y-2">
+                      <Label>Stat {index + 1}</Label>
+                      <div className="space-y-2">
+                        <Input
+                          value={stat.number || ""}
+                          onChange={(e) => {
+                            const newStats = [...(data.home?.stats || [])];
+                            newStats[index] = { ...stat, number: e.target.value };
+                            updateData(["home", "stats"], newStats);
+                          }}
+                          placeholder="500+"
+                        />
+                        <Input
+                          value={stat.label || ""}
+                          onChange={(e) => {
+                            const newStats = [...(data.home?.stats || [])];
+                            newStats[index] = { ...stat, label: e.target.value };
+                            updateData(["home", "stats"], newStats);
+                          }}
+                          placeholder="Projects Completed"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Overview Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <FileText className="h-5 w-5" />
+                  <span>Overview Section</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="overviewTitle">Overview Title</Label>
+                  <Input
+                    id="overviewTitle"
+                    value={data.home?.overview?.title || ""}
+                    onChange={(e) => updateData(["home", "overview", "title"], e.target.value)}
+                    placeholder="Turnkey Solutions That Work"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="overviewDescription">Overview Description</Label>
+                  <Textarea
+                    id="overviewDescription"
+                    value={data.home?.overview?.description || ""}
+                    onChange={(e) => updateData(["home", "overview", "description"], e.target.value)}
+                    placeholder="We deliver complete, ready-to-use systems..."
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <Label>Services List</Label>
+                  <div className="space-y-2">
+                    {(data.home?.overview?.services || []).map((service: string, index: number) => (
+                      <div key={index} className="flex gap-2">
+                        <Input
+                          value={service || ""}
+                          onChange={(e) => {
+                            const newServices = [...(data.home?.overview?.services || [])];
+                            newServices[index] = e.target.value;
+                            updateData(["home", "overview", "services"], newServices);
+                          }}
+                          placeholder="Service name"
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const newServices = [...(data.home?.overview?.services || [])];
+                            newServices.splice(index, 1);
+                            updateData(["home", "overview", "services"], newServices);
+                          }}
+                          className="text-red-500"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const newServices = [...(data.home?.overview?.services || []), ""];
+                        updateData(["home", "overview", "services"], newServices);
+                      }}
+                    >
+                      Add Service
+                    </Button>
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="overviewButton">Overview Button Text</Label>
+                  <Input
+                    id="overviewButton"
+                    value={data.home?.overview?.buttonText || ""}
+                    onChange={(e) => updateData(["home", "overview", "buttonText"], e.target.value)}
+                    placeholder="Learn More About Our Services"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* CTA Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <ArrowRight className="h-5 w-5" />
+                  <span>Call to Action Section</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="ctaTitle">CTA Title</Label>
+                  <Input
+                    id="ctaTitle"
+                    value={data.home?.cta?.title || ""}
+                    onChange={(e) => updateData(["home", "cta", "title"], e.target.value)}
+                    placeholder="Ready to Transform Your Operations?"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="ctaDescription">CTA Description</Label>
+                  <Textarea
+                    id="ctaDescription"
+                    value={data.home?.cta?.description || ""}
+                    onChange={(e) => updateData(["home", "cta", "description"], e.target.value)}
+                    placeholder="Get started with a free consultation..."
+                    rows={3}
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="ctaPrimaryButton">Primary Button Text</Label>
+                    <Input
+                      id="ctaPrimaryButton"
+                      value={data.home?.cta?.primaryButton || ""}
+                      onChange={(e) => updateData(["home", "cta", "primaryButton"], e.target.value)}
+                      placeholder="Get Free Consultation"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="ctaSecondaryButton">Secondary Button Text</Label>
+                    <Input
+                      id="ctaSecondaryButton"
+                      value={data.home?.cta?.secondaryButton || ""}
+                      onChange={(e) => updateData(["home", "cta", "secondaryButton"], e.target.value)}
+                      placeholder="Why Choose Us"
                     />
                   </div>
                 </div>
@@ -630,6 +1232,50 @@ export default function AdminPage() {
                       </CardContent>
                     </Card>
                   ))}
+                </div>
+
+                <Separator />
+
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="servicesCTATitle">CTA Title</Label>
+                    <Input
+                      id="servicesCTATitle"
+                      value={data.services?.cta?.title || ""}
+                      onChange={(e) => updateData(["services", "cta", "title"], e.target.value)}
+                      placeholder="Ready to Get Started?"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="servicesCTADescription">CTA Description</Label>
+                    <Textarea
+                      id="servicesCTADescription"
+                      value={data.services?.cta?.description || ""}
+                      onChange={(e) => updateData(["services", "cta", "description"], e.target.value)}
+                      placeholder="Contact us today to discuss which solution is right for your business."
+                      rows={3}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="servicesCTAPrimaryButton">Primary Button Text</Label>
+                      <Input
+                        id="servicesCTAPrimaryButton"
+                        value={data.services?.cta?.primaryButton || ""}
+                        onChange={(e) => updateData(["services", "cta", "primaryButton"], e.target.value)}
+                        placeholder="Contact Us Today"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="servicesCTASecondaryButton">Secondary Button Text</Label>
+                      <Input
+                        id="servicesCTASecondaryButton"
+                        value={data.services?.cta?.secondaryButton || ""}
+                        onChange={(e) => updateData(["services", "cta", "secondaryButton"], e.target.value)}
+                        placeholder="View Case Studies"
+                      />
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -746,17 +1392,106 @@ export default function AdminPage() {
                     </Card>
                   ))}
                 </div>
+
+                <Separator />
+
+                {/* Stats Section */}
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold">Stats Section</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {(data.caseStudies?.stats?.items || []).map((stat: any, index: number) => (
+                      <div key={index} className="space-y-2">
+                        <Label>Stat {index + 1}</Label>
+                        <div className="space-y-2">
+                          <Input
+                            value={stat.number || ""}
+                            onChange={(e) => {
+                              const newStats = [...(data.caseStudies?.stats?.items || [])];
+                              newStats[index] = { ...stat, number: e.target.value };
+                              updateData(["caseStudies", "stats", "items"], newStats);
+                            }}
+                            placeholder="500+"
+                          />
+                          <Input
+                            value={stat.label || ""}
+                            onChange={(e) => {
+                              const newStats = [...(data.caseStudies?.stats?.items || [])];
+                              newStats[index] = { ...stat, label: e.target.value };
+                              updateData(["caseStudies", "stats", "items"], newStats);
+                            }}
+                            placeholder="Projects Completed"
+                          />
+                          <Input
+                            value={stat.color || ""}
+                            onChange={(e) => {
+                              const newStats = [...(data.caseStudies?.stats?.items || [])];
+                              newStats[index] = { ...stat, color: e.target.value };
+                              updateData(["caseStudies", "stats", "items"], newStats);
+                            }}
+                            placeholder="text-[#FF6B35]"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* CTA Section */}
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="caseStudiesCTATitle">CTA Title</Label>
+                    <Input
+                      id="caseStudiesCTATitle"
+                      value={data.caseStudies?.cta?.title || ""}
+                      onChange={(e) => updateData(["caseStudies", "cta", "title"], e.target.value)}
+                      placeholder="Ready to Write Your Success Story?"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="caseStudiesCTADescription">CTA Description</Label>
+                    <Textarea
+                      id="caseStudiesCTADescription"
+                      value={data.caseStudies?.cta?.description || ""}
+                      onChange={(e) => updateData(["caseStudies", "cta", "description"], e.target.value)}
+                      placeholder="Join these industry leaders..."
+                      rows={3}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="caseStudiesCTAPrimaryButton">Primary Button Text</Label>
+                      <Input
+                        id="caseStudiesCTAPrimaryButton"
+                        value={data.caseStudies?.cta?.primaryButton || ""}
+                        onChange={(e) => updateData(["caseStudies", "cta", "primaryButton"], e.target.value)}
+                        placeholder="Start Your Transformation"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="caseStudiesCTASecondaryButton">Secondary Button Text</Label>
+                      <Input
+                        id="caseStudiesCTASecondaryButton"
+                        value={data.caseStudies?.cta?.secondaryButton || ""}
+                        onChange={(e) => updateData(["caseStudies", "cta", "secondaryButton"], e.target.value)}
+                        placeholder="Explore Our Solutions"
+                      />
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
 
           {/* About Tab */}
           <TabsContent value="about" className="space-y-6">
+            {/* Hero Section */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Users className="h-5 w-5" />
-                  <span>About / Why Us Section</span>
+                  <span>Hero Section</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -781,15 +1516,288 @@ export default function AdminPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Stats Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <BarChart3 className="h-5 w-5" />
+                  <span>Stats Section</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {(data.whyUs?.stats || []).map((stat: any, index: number) => (
+                    <div key={index} className="space-y-2">
+                      <Label>Stat {index + 1}</Label>
+                      <div className="space-y-2">
+                        <Input
+                          value={stat.number || ""}
+                          onChange={(e) => {
+                            const newStats = [...(data.whyUs?.stats || [])];
+                            newStats[index] = { ...stat, number: e.target.value };
+                            updateData(["whyUs", "stats"], newStats);
+                          }}
+                          placeholder="500+"
+                        />
+                        <Input
+                          value={stat.label || ""}
+                          onChange={(e) => {
+                            const newStats = [...(data.whyUs?.stats || [])];
+                            newStats[index] = { ...stat, label: e.target.value };
+                            updateData(["whyUs", "stats"], newStats);
+                          }}
+                          placeholder="Successful Projects"
+                        />
+                        <Input
+                          value={stat.color || ""}
+                          onChange={(e) => {
+                            const newStats = [...(data.whyUs?.stats || [])];
+                            newStats[index] = { ...stat, color: e.target.value };
+                            updateData(["whyUs", "stats"], newStats);
+                          }}
+                          placeholder="text-[#FF6B35]"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Reasons Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Check className="h-5 w-5" />
+                  <span>Reasons Section</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="reasonsTitle">Reasons Title</Label>
+                    <Input
+                      id="reasonsTitle"
+                      value={data.whyUs?.reasons?.title || ""}
+                      onChange={(e) => updateData(["whyUs", "reasons", "title"], e.target.value)}
+                      placeholder="What Sets Us Apart"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="reasonsDescription">Reasons Description</Label>
+                    <Textarea
+                      id="reasonsDescription"
+                      value={data.whyUs?.reasons?.description || ""}
+                      onChange={(e) => updateData(["whyUs", "reasons", "description"], e.target.value)}
+                      placeholder="We combine deep industry expertise..."
+                      rows={3}
+                    />
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold">Reason Items</h3>
+                  {(data.whyUs?.reasons?.items || []).map((reason: any, index: number) => (
+                    <Card key={index} className="border-l-4 border-l-orange-500">
+                      <CardHeader>
+                        <CardTitle className="text-base">Reason {index + 1}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label>Icon Name</Label>
+                            <Input
+                              value={reason.icon || ""}
+                              onChange={(e) => {
+                                const newItems = [...(data.whyUs?.reasons?.items || [])];
+                                newItems[index] = { ...reason, icon: e.target.value };
+                                updateData(["whyUs", "reasons", "items"], newItems);
+                              }}
+                              placeholder="Zap"
+                            />
+                          </div>
+                          <div>
+                            <Label>Title</Label>
+                            <Input
+                              value={reason.title || ""}
+                              onChange={(e) => {
+                                const newItems = [...(data.whyUs?.reasons?.items || [])];
+                                newItems[index] = { ...reason, title: e.target.value };
+                                updateData(["whyUs", "reasons", "items"], newItems);
+                              }}
+                              placeholder="Turnkey Solutions"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label>Description</Label>
+                          <Textarea
+                            value={reason.description || ""}
+                            onChange={(e) => {
+                              const newItems = [...(data.whyUs?.reasons?.items || [])];
+                              newItems[index] = { ...reason, description: e.target.value };
+                              updateData(["whyUs", "reasons", "items"], newItems);
+                            }}
+                            placeholder="Complete, ready-to-use systems..."
+                            rows={3}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Process Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Settings className="h-5 w-5" />
+                  <span>Process Section</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="processTitle">Process Title</Label>
+                    <Input
+                      id="processTitle"
+                      value={data.whyUs?.process?.title || ""}
+                      onChange={(e) => updateData(["whyUs", "process", "title"], e.target.value)}
+                      placeholder="Our Proven Process"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="processDescription">Process Description</Label>
+                    <Textarea
+                      id="processDescription"
+                      value={data.whyUs?.process?.description || ""}
+                      onChange={(e) => updateData(["whyUs", "process", "description"], e.target.value)}
+                      placeholder="From consultation to deployment..."
+                      rows={3}
+                    />
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold">Process Steps</h3>
+                  {(data.whyUs?.process?.steps || []).map((step: any, index: number) => (
+                    <Card key={index} className="border-l-4 border-l-blue-500">
+                      <CardHeader>
+                        <CardTitle className="text-base">Step {index + 1}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <Label>Step Number</Label>
+                            <Input
+                              value={step.step || ""}
+                              onChange={(e) => {
+                                const newSteps = [...(data.whyUs?.process?.steps || [])];
+                                newSteps[index] = { ...step, step: e.target.value };
+                                updateData(["whyUs", "process", "steps"], newSteps);
+                              }}
+                              placeholder="01"
+                            />
+                          </div>
+                          <div>
+                            <Label>Title</Label>
+                            <Input
+                              value={step.title || ""}
+                              onChange={(e) => {
+                                const newSteps = [...(data.whyUs?.process?.steps || [])];
+                                newSteps[index] = { ...step, title: e.target.value };
+                                updateData(["whyUs", "process", "steps"], newSteps);
+                              }}
+                              placeholder="Consultation"
+                            />
+                          </div>
+                          <div>
+                            <Label>Description</Label>
+                            <Input
+                              value={step.description || ""}
+                              onChange={(e) => {
+                                const newSteps = [...(data.whyUs?.process?.steps || [])];
+                                newSteps[index] = { ...step, description: e.target.value };
+                                updateData(["whyUs", "process", "steps"], newSteps);
+                              }}
+                              placeholder="We analyze your needs..."
+                            />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* CTA Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <ArrowRight className="h-5 w-5" />
+                  <span>Call to Action Section</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="whyUsCTATitle">CTA Title</Label>
+                  <Input
+                    id="whyUsCTATitle"
+                    value={data.whyUs?.cta?.title || ""}
+                    onChange={(e) => updateData(["whyUs", "cta", "title"], e.target.value)}
+                    placeholder="Ready to Experience the Difference?"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="whyUsCTADescription">CTA Description</Label>
+                  <Textarea
+                    id="whyUsCTADescription"
+                    value={data.whyUs?.cta?.description || ""}
+                    onChange={(e) => updateData(["whyUs", "cta", "description"], e.target.value)}
+                    placeholder="Join hundreds of companies..."
+                    rows={3}
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="whyUsCTAPrimaryButton">Primary Button Text</Label>
+                    <Input
+                      id="whyUsCTAPrimaryButton"
+                      value={data.whyUs?.cta?.primaryButton || ""}
+                      onChange={(e) => updateData(["whyUs", "cta", "primaryButton"], e.target.value)}
+                      placeholder="Get Free Consultation"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="whyUsCTASecondaryButton">Secondary Button Text</Label>
+                    <Input
+                      id="whyUsCTASecondaryButton"
+                      value={data.whyUs?.cta?.secondaryButton || ""}
+                      onChange={(e) => updateData(["whyUs", "cta", "secondaryButton"], e.target.value)}
+                      placeholder="View Success Stories"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Contact Tab */}
           <TabsContent value="contact" className="space-y-6">
+            {/* Hero Section */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Phone className="h-5 w-5" />
-                  <span>Contact Information</span>
+                  <span>Hero Section</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -811,6 +1819,162 @@ export default function AdminPage() {
                     placeholder="Ready to transform your operations?"
                     rows={3}
                   />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Contact Info Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Settings className="h-5 w-5" />
+                  <span>Contact Information</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {(data.contact?.info || []).map((info: any, index: number) => (
+                    <div key={index} className="space-y-2">
+                      <Label>Contact Info {index + 1}</Label>
+                      <div className="space-y-2">
+                        <Input
+                          value={info.icon || ""}
+                          onChange={(e) => {
+                            const newInfo = [...(data.contact?.info || [])];
+                            newInfo[index] = { ...info, icon: e.target.value };
+                            updateData(["contact", "info"], newInfo);
+                          }}
+                          placeholder="MapPin"
+                        />
+                        <Input
+                          value={info.title || ""}
+                          onChange={(e) => {
+                            const newInfo = [...(data.contact?.info || [])];
+                            newInfo[index] = { ...info, title: e.target.value };
+                            updateData(["contact", "info"], newInfo);
+                          }}
+                          placeholder="Office Location"
+                        />
+                        <Textarea
+                          value={info.info || ""}
+                          onChange={(e) => {
+                            const newInfo = [...(data.contact?.info || [])];
+                            newInfo[index] = { ...info, info: e.target.value };
+                            updateData(["contact", "info"], newInfo);
+                          }}
+                          placeholder="123 Business District\nTech City, TC 12345"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Contact Form Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <FileText className="h-5 w-5" />
+                  <span>Contact Form</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="formTitle">Form Title</Label>
+                    <Input
+                      id="formTitle"
+                      value={data.contact?.form?.title || ""}
+                      onChange={(e) => updateData(["contact", "form", "title"], e.target.value)}
+                      placeholder="Send Us a Message"
+                    />
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Form Fields</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Object.entries(data.contact?.form?.fields || {}).map(([fieldName, field]: [string, any]) => (
+                      <div key={fieldName} className="space-y-2">
+                        <Label>{fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} Field</Label>
+                        <div className="space-y-2">
+                          <Input
+                            value={field.label || ""}
+                            onChange={(e) => {
+                              const newFields = { ...(data.contact?.form?.fields || {}) };
+                              newFields[fieldName] = { ...field, label: e.target.value };
+                              updateData(["contact", "form", "fields"], newFields);
+                            }}
+                            placeholder="Field Label"
+                          />
+                          <Input
+                            value={field.placeholder || ""}
+                            onChange={(e) => {
+                              const newFields = { ...(data.contact?.form?.fields || {}) };
+                              newFields[fieldName] = { ...field, placeholder: e.target.value };
+                              updateData(["contact", "form", "fields"], newFields);
+                            }}
+                            placeholder="Field Placeholder"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="submitButton">Submit Button Text</Label>
+                    <Input
+                      id="submitButton"
+                      value={data.contact?.form?.submitButton || ""}
+                      onChange={(e) => updateData(["contact", "form", "submitButton"], e.target.value)}
+                      placeholder="Send Message"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="submittingText">Submitting Text</Label>
+                    <Input
+                      id="submittingText"
+                      value={data.contact?.form?.submittingText || ""}
+                      onChange={(e) => updateData(["contact", "form", "submittingText"], e.target.value)}
+                      placeholder="Sending..."
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="successTitle">Success Title</Label>
+                    <Input
+                      id="successTitle"
+                      value={data.contact?.form?.successTitle || ""}
+                      onChange={(e) => updateData(["contact", "form", "successTitle"], e.target.value)}
+                      placeholder="Message Sent!"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="successMessage">Success Message</Label>
+                    <Textarea
+                      id="successMessage"
+                      value={data.contact?.form?.successMessage || ""}
+                      onChange={(e) => updateData(["contact", "form", "successMessage"], e.target.value)}
+                      placeholder="Thank you for reaching out..."
+                      rows={2}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="successButton">Success Button Text</Label>
+                    <Input
+                      id="successButton"
+                      value={data.contact?.form?.successButton || ""}
+                      onChange={(e) => updateData(["contact", "form", "successButton"], e.target.value)}
+                      placeholder="Send Another Message"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -904,7 +2068,7 @@ export default function AdminPage() {
                     <Card key={post.id || index}>
                       <CardContent className="pt-6">
                         <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-semibold">{post.title}</h3>
+                          <h3 className="text-lg font-semibold">{post.title || "Untitled Post"}</h3>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -919,15 +2083,108 @@ export default function AdminPage() {
                           </Button>
                         </div>
                         <div className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label>Title</Label>
+                              <Input
+                                value={post.title || ""}
+                                onChange={(e) => {
+                                  const newPosts = [...(data.blog?.posts || [])];
+                                  newPosts[index] = { ...post, title: e.target.value };
+                                  updateData(["blog", "posts"], newPosts);
+                                }}
+                                placeholder="Post Title"
+                              />
+                            </div>
+                            <div>
+                              <Label>Author</Label>
+                              <Input
+                                value={post.author || ""}
+                                onChange={(e) => {
+                                  const newPosts = [...(data.blog?.posts || [])];
+                                  newPosts[index] = { ...post, author: e.target.value };
+                                  updateData(["blog", "posts"], newPosts);
+                                }}
+                                placeholder="Author Name"
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                              <Label>Date</Label>
+                              <Input
+                                value={post.date || ""}
+                                onChange={(e) => {
+                                  const newPosts = [...(data.blog?.posts || [])];
+                                  newPosts[index] = { ...post, date: e.target.value };
+                                  updateData(["blog", "posts"], newPosts);
+                                }}
+                                placeholder="March 15, 2024"
+                              />
+                            </div>
+                            <div>
+                              <Label>Read Time</Label>
+                              <Input
+                                value={post.readTime || ""}
+                                onChange={(e) => {
+                                  const newPosts = [...(data.blog?.posts || [])];
+                                  newPosts[index] = { ...post, readTime: e.target.value };
+                                  updateData(["blog", "posts"], newPosts);
+                                }}
+                                placeholder="8 min read"
+                              />
+                            </div>
+                            <div>
+                              <Label>Category</Label>
+                              <Input
+                                value={post.category || ""}
+                                onChange={(e) => {
+                                  const newPosts = [...(data.blog?.posts || [])];
+                                  newPosts[index] = { ...post, category: e.target.value };
+                                  updateData(["blog", "posts"], newPosts);
+                                }}
+                                placeholder="Supply Chain"
+                              />
+                            </div>
+                          </div>
                           <div>
-                            <Label>Title</Label>
-                            <Input
-                              value={post.title || ""}
+                            <Label>Excerpt</Label>
+                            <Textarea
+                              value={post.excerpt || ""}
                               onChange={(e) => {
                                 const newPosts = [...(data.blog?.posts || [])];
-                                newPosts[index] = { ...post, title: e.target.value };
+                                newPosts[index] = { ...post, excerpt: e.target.value };
                                 updateData(["blog", "posts"], newPosts);
                               }}
+                              placeholder="Brief description of the post..."
+                              rows={3}
+                            />
+                          </div>
+                          <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id={`featured-${index}`}
+                                checked={post.featured || false}
+                                onChange={(e) => {
+                                  const newPosts = [...(data.blog?.posts || [])];
+                                  newPosts[index] = { ...post, featured: e.target.checked };
+                                  updateData(["blog", "posts"], newPosts);
+                                }}
+                              />
+                              <Label htmlFor={`featured-${index}`}>Featured Post</Label>
+                            </div>
+                          </div>
+                          <div>
+                            <Label>Image URL</Label>
+                            <Input
+                              value={post.image || ""}
+                              onChange={(e) => {
+                                const newPosts = [...(data.blog?.posts || [])];
+                                newPosts[index] = { ...post, image: e.target.value };
+                                updateData(["blog", "posts"], newPosts);
+                              }}
+                              placeholder="/images/blog-1.jpg"
                             />
                           </div>
                           <div>
@@ -939,7 +2196,8 @@ export default function AdminPage() {
                                 newPosts[index] = { ...post, content: e.target.value };
                                 updateData(["blog", "posts"], newPosts);
                               }}
-                              rows={4}
+                              placeholder="Full blog post content..."
+                              rows={6}
                             />
                           </div>
                         </div>
@@ -951,8 +2209,14 @@ export default function AdminPage() {
                       const newPost = {
                         id: Date.now(),
                         title: "",
-                        content: "",
-                        date: new Date().toISOString().split('T')[0]
+                        excerpt: "",
+                        author: "",
+                        date: new Date().toISOString().split('T')[0],
+                        readTime: "",
+                        category: "",
+                        image: "",
+                        featured: false,
+                        content: ""
                       };
                       updateData(["blog", "posts"], [...(data.blog?.posts || []), newPost]);
                     }}

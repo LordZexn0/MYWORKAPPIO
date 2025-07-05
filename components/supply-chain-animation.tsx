@@ -4,10 +4,13 @@ import { Truck, Package, BarChart3, Warehouse } from "lucide-react"
 import { motion } from "framer-motion"
 import { useInView } from "framer-motion"
 import { useRef } from "react"
+import { useCMS } from "@/hooks/use-cms"
 
 export default function SupplyChainAnimation() {
   const containerRef = useRef(null)
   const isInView = useInView(containerRef, { once: true, margin: "-100px" })
+  const { content } = useCMS()
+  const { title, description, steps, conclusion } = content.supplyChain
 
   const containerVariants = {
     hidden: {},
@@ -59,7 +62,7 @@ export default function SupplyChainAnimation() {
           transition={{ duration: 0.5 }}
         >
           <h2 className="text-3xl md:text-5xl font-bold mb-4 font-heading text-blue-900">
-            Our End-to-End Supply Chain Solution
+            {title}
           </h2>
           <motion.div 
             className="h-1 w-24 bg-gradient-to-r from-yellow-400 to-orange-500 mx-auto mb-6 rounded-full"
@@ -68,7 +71,7 @@ export default function SupplyChainAnimation() {
             transition={{ duration: 0.8, delay: 0.3 }}
           />
           <p className="max-w-3xl mx-auto text-lg text-gray-600 leading-relaxed">
-            From warehouse to delivery, our integrated platform streamlines every step of your logistics operations.
+            {description}
           </p>
         </motion.div>
 
@@ -90,33 +93,15 @@ export default function SupplyChainAnimation() {
                 initial="hidden"
                 animate={isInView ? "visible" : "hidden"}
               >
-                {[
-                  {
-                    icon: Warehouse,
-                    title: "Warehouse",
-                    description: "Inventory tracking and management",
-                    color: "text-blue-900",
-                  },
-                  {
-                    icon: Package,
-                    title: "Packaging",
-                    description: "Automated order processing",
-                    color: "text-yellow-500",
-                  },
-                  {
-                    icon: Truck,
-                    title: "Shipping",
-                    description: "Real-time tracking and routing",
-                    color: "text-orange-500",
-                  },
-                  {
-                    icon: BarChart3,
-                    title: "Analytics",
-                    description: "Performance insights and reporting",
-                    color: "text-blue-900",
-                  },
-                ].map((step, index) => {
-                  const IconComponent = step.icon
+                {steps.map((step, index) => {
+                  // Map icon names to components
+                  const iconMap: { [key: string]: any } = {
+                    Warehouse,
+                    Package,
+                    Truck,
+                    BarChart3,
+                  }
+                  const IconComponent = iconMap[step.icon] || Warehouse
                   return (
                     <motion.div
                       key={step.title}
@@ -169,33 +154,15 @@ export default function SupplyChainAnimation() {
             initial="hidden"
             animate={isInView ? "visible" : "hidden"}
           >
-            {[
-              {
-                icon: Warehouse,
-                title: "Warehouse",
-                description: "Inventory tracking and management",
-                color: "text-blue-900",
-              },
-              {
-                icon: Package,
-                title: "Packaging",
-                description: "Automated order processing",
-                color: "text-yellow-500",
-              },
-              {
-                icon: Truck,
-                title: "Shipping",
-                description: "Real-time tracking and routing",
-                color: "text-orange-500",
-              },
-              {
-                icon: BarChart3,
-                title: "Analytics",
-                description: "Performance insights and reporting",
-                color: "text-blue-900",
-              },
-            ].map((step, index) => {
-              const IconComponent = step.icon
+            {steps.map((step, index) => {
+              // Map icon names to components
+              const iconMap: { [key: string]: any } = {
+                Warehouse,
+                Package,
+                Truck,
+                BarChart3,
+              }
+              const IconComponent = iconMap[step.icon] || Warehouse
               return (
                 <motion.div 
                   key={step.title} 
@@ -225,7 +192,7 @@ export default function SupplyChainAnimation() {
         >
           <div className="max-w-4xl mx-auto">
             <p className="text-xl text-gray-700 font-medium leading-relaxed">
-              Our integrated platform connects every step of your supply chain for maximum efficiency.
+              {conclusion}
             </p>
           </div>
         </motion.div>
