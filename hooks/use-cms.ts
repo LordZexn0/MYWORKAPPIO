@@ -75,24 +75,16 @@ interface CMSContent {
       label: string
       color: string
     }>
-    reasons: {
+    reasons: Array<{
       title: string
       description: string
-      items: Array<{
-        title: string
-        description: string
-        icon: string
-      }>
-    }
-    process: {
+      icon: string
+    }>
+    process: Array<{
+      step: number
       title: string
       description: string
-      steps: Array<{
-        step: number
-        title: string
-        description: string
-      }>
-    }
+    }>
     cta: {
       title: string
       description: string
@@ -105,24 +97,15 @@ interface CMSContent {
       title: string
       description: string
     }
-    stats: {
-      title: string
-      items: Array<{
-        number: string
-        label: string
-        color: string
-      }>
-    }
+    stats: Array<{
+      number: string
+      label: string
+    }>
     items: Array<{
       id: number
       title: string
       subtitle: string
       description: string
-      tags: string[]
-      location: string
-      date: string
-      challenge: string
-      solution: string
       results: string[]
       image: string
     }>
@@ -161,11 +144,10 @@ interface CMSContent {
       title: string
       description: string
     }
-    info: Array<{
-      icon: string
+    info: {
       title: string
-      info: string
-    }>
+      items: string[]
+    }
     form: {
       title: string
       description: string
@@ -310,90 +292,43 @@ const defaultContent: CMSContent = {
       { number: "50%", label: "Average Efficiency Gain", color: "text-[#0F4C81]" },
       { number: "24/7", label: "Support Available", color: "text-[#FF6B35]" }
     ],
-    reasons: {
-      title: "What Sets Us Apart",
-      description: "We combine deep industry expertise with cutting-edge technology to deliver solutions that actually work.",
-      items: [
-        {
-          icon: "Zap",
-          title: "Turnkey Solutions",
-          description: "Complete, ready-to-use systems that work from day one. No complex setup or lengthy development cycles."
-        },
-        {
-          icon: "Clock",
-          title: "Rapid Deployment",
-          description: "Get up and running in weeks, not months. Our solutions are designed for quick implementation and immediate results."
-        },
-        {
-          icon: "Shield",
-          title: "Proven Reliability",
-          description: "Battle-tested systems with 99.9% uptime. Your operations stay running smoothly, 24/7."
-        },
-        {
-          icon: "Users",
-          title: "Expert Support",
-          description: "Dedicated support team with deep industry knowledge. We're here to help you succeed every step of the way."
-        }
-      ]
-    },
-    process: {
-      title: "Our Proven Process",
-      description: "From consultation to deployment, we ensure your success every step of the way.",
-      steps: [
-        {
-          step: 1,
-          title: "Assessment",
-          description: "We evaluate your current operations and identify improvement opportunities."
-        },
-        {
-          step: 2,
-          title: "Solution Design",
-          description: "We design a customized solution that addresses your specific challenges and goals."
-        },
-        {
-          step: 3,
-          title: "Implementation",
-          description: "We deploy your solution with minimal disruption to your existing operations."
-        },
-        {
-          step: 4,
-          title: "Support",
-          description: "We provide ongoing support and optimization to ensure continued success."
-        }
-      ]
-    },
+    reasons: [
+      {
+        title: "Turnkey Solutions",
+        description: "Complete, ready-to-use systems that work from day one.",
+        icon: "Package"
+      }
+    ],
+    process: [
+      {
+        step: 1,
+        title: "Assessment",
+        description: "We evaluate your current operations and identify improvement opportunities."
+      }
+    ],
     cta: {
-      title: "Ready to Experience the Difference?",
-      description: "Join hundreds of companies that have transformed their operations with our turnkey solutions.",
+      title: "Ready to Transform Your Operations?",
+      description: "Get started with a free consultation and see how our turnkey solutions can streamline your business.",
       primaryButton: "Get Free Consultation",
-      secondaryButton: "View Success Stories"
+      secondaryButton: "View Case Studies"
     }
   },
   caseStudies: {
     hero: {
-      title: "Success Stories",
-      description: "See how our turnkey solutions have transformed operations for companies across industries."
+      title: "Case Studies",
+      description: "See how our turnkey solutions have transformed operations for businesses like yours."
     },
-    stats: {
-      title: "Proven Results Across Industries",
-      items: [
-        { number: "500+", label: "Projects Completed", color: "text-[#FF6B35]" },
-        { number: "99%", label: "Client Satisfaction", color: "text-[#FFCF40]" },
-        { number: "50%", label: "Average Efficiency Gain", color: "text-[#0F4C81]" },
-        { number: "24/7", label: "Support Available", color: "text-[#FF6B35]" }
-      ]
-    },
+    stats: [
+      { number: "500+", label: "Projects Completed" },
+      { number: "99%", label: "Client Satisfaction" },
+      { number: "50%", label: "Average Efficiency Gain" }
+    ],
     items: [
       {
         id: 1,
         title: "Global Logistics Company",
         subtitle: "Streamlined Supply Chain Operations",
         description: "How we helped a global logistics company reduce costs and improve efficiency.",
-        tags: ["Logistics", "Supply Chain", "Automation"],
-        location: "Global",
-        date: "2024",
-        challenge: "Complex supply chain operations with limited visibility and manual processes.",
-        solution: "Implemented our turnkey logistics platform with real-time tracking and automated workflows.",
         results: [
           "30% reduction in operational costs",
           "50% improvement in delivery times",
@@ -403,10 +338,10 @@ const defaultContent: CMSContent = {
       }
     ],
     cta: {
-      title: "Ready to Write Your Success Story?",
-      description: "Join these industry leaders and transform your operations with our proven turnkey solutions.",
-      primaryButton: "Start Your Transformation",
-      secondaryButton: "Explore Our Solutions"
+      title: "Ready to See Similar Results?",
+      description: "Contact us today to discuss how our solutions can transform your operations.",
+      primaryButton: "Get Free Consultation",
+      secondaryButton: "View All Case Studies"
     }
   },
   blog: {
@@ -436,31 +371,18 @@ const defaultContent: CMSContent = {
   },
   contact: {
     hero: {
-      title: "Get In Touch",
-      description: "Ready to transform your operations? Let's discuss how our turnkey solutions can help your business."
+      title: "Contact Us",
+      description: "Ready to transform your operations? Let's discuss how our turnkey solutions can help."
     },
-    info: [
-      {
-        icon: "MapPin",
-        title: "Office Location",
-        info: "123 Business District\nTech City, TC 12345"
-      },
-      {
-        icon: "Phone",
-        title: "Phone",
-        info: "+1 (555) 123-4567"
-      },
-      {
-        icon: "Mail",
-        title: "Email",
-        info: "hello@myworkapp.io"
-      },
-      {
-        icon: "Clock",
-        title: "Business Hours",
-        info: "Mon - Fri: 9:00 AM - 6:00 PM\nSat - Sun: Closed"
-      }
-    ],
+    info: {
+      title: "Get in Touch",
+      items: [
+        "123 Business District",
+        "Tech City, TC 12345",
+        "+1 (555) 123-4567",
+        "hello@myworkapp.io"
+      ]
+    },
     form: {
       title: "Send us a Message",
       description: "Fill out the form below and we'll get back to you within 24 hours.",
