@@ -3,28 +3,32 @@ import { Redis } from "@upstash/redis"
 import fs from "fs"
 import path from "path"
 
-// Initialize Upstash Redis client only if not in build environment
+// Initialize Upstash Redis client
 let redis: Redis | null = null
 
-// Only initialize Redis if we're not in a build environment
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL_ENV) {
+// Initialize Redis client if environment variables are available
+function initializeRedis() {
   try {
-    if (process.env.UPSTASH_KV_REST_API_URL && process.env.UPSTASH_KV_REST_API_TOKEN) {
-      console.log("🔧 Initializing Redis client with URL:", process.env.UPSTASH_KV_REST_API_URL)
+    if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+      console.log("🔧 Initializing Redis client...")
       redis = new Redis({
-        url: process.env.UPSTASH_KV_REST_API_URL,
-        token: process.env.UPSTASH_KV_REST_API_TOKEN,
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
       })
       console.log("✅ Redis client initialized successfully")
+      return true
     } else {
-      console.log("⚠️ Missing Redis environment variables")
+      console.log("⚠️ Missing Redis environment variables - using file storage fallback")
+      return false
     }
   } catch (error) {
     console.error("❌ Failed to initialize Redis client:", error)
+    return false
   }
-} else {
-  console.log("🔧 Skipping Redis initialization during build time")
 }
+
+// Initialize Redis on module load
+initializeRedis()
 
 // Default CMS content - this will be used as the base content
 const defaultContent = {
@@ -499,30 +503,29 @@ const CMS_KEY = "cms-content"
 async function isKVAvailable() {
   try {
     // Check if Upstash environment variables are set
-    if (!process.env.UPSTASH_KV_REST_API_URL || !process.env.UPSTASH_KV_REST_API_TOKEN) {
+    if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+      console.log("❌ Missing Upstash environment variables")
       return false
     }
     
     // Check if Redis client is initialized
     if (!redis) {
+      console.log("❌ Redis client not initialized")
       return false
     }
     
+    // Test the connection
     await redis.ping()
+    console.log("✅ Redis connection test successful")
     return true
   } catch (error) {
+    console.error("❌ Redis connection test failed:", error)
     return false
   }
 }
 
 export async function GET() {
   try {
-    // During build time, return default content to avoid external requests
-    if (process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === 'production') {
-      console.log("🔧 Build time detected, returning default content")
-      return NextResponse.json(defaultContent)
-    }
-
     console.log("🔍 GET CMS: Checking Upstash Redis availability...")
     
     const kvAvailable = await isKVAvailable()
@@ -576,7 +579,7 @@ export async function POST(request: NextRequest) {
         await redis!.set(CMS_KEY, content)
         return NextResponse.json({ 
           success: true, 
-          message: "Content saved to KV successfully",
+          message: "Content saved to Upstash Redis successfully",
           storage: "kv"
         })
       } catch (kvError) {
@@ -589,19 +592,31 @@ export async function POST(request: NextRequest) {
     console.log("💾 Saving to local file storage...")
     try {
       const filePath = path.join(process.cwd(), "cms", "content.json")
+      
+      // Ensure the directory exists
+      const dirPath = path.dirname(filePath)
+      if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true })
+        console.log("📁 Created cms directory")
+      }
+      
+      // Write the file
       fs.writeFileSync(filePath, JSON.stringify(content, null, 2), "utf8")
+      console.log("✅ File saved successfully to:", filePath)
       
       return NextResponse.json({ 
         success: true, 
-        message: "Content saved to local file successfully",
+        message: "Content saved to local file successfully (Redis not available)",
         storage: "file"
       })
     } catch (fileError) {
       console.error("❌ File save error:", fileError)
+      
       return NextResponse.json({ 
         success: false,
-        error: "Failed to save content",
-        details: fileError instanceof Error ? fileError.message : "Unknown file error"
+        error: "Failed to save content to file",
+        details: fileError instanceof Error ? fileError.message : "Unknown file error",
+        solution: "Check file permissions and ensure the cms directory is writable"
       }, { status: 500 })
     }
   } catch (error) {
