@@ -9,6 +9,12 @@ let redis: Redis | null = null
 // Initialize Redis client if environment variables are available
 function initializeRedis() {
   try {
+    // Skip Redis initialization during build time
+    if (process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === 'production') {
+      console.log("🔧 KV Test: Skipping Redis initialization during build time")
+      return false
+    }
+    
     if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
       console.log("🔧 Initializing Redis client...")
       redis = new Redis({
@@ -527,6 +533,26 @@ async function isKVAvailable() {
 export async function GET() {
   try {
     console.log("🔍 GET CMS: Checking Upstash Redis availability...")
+    console.log("🔍 Comprehensive Environment Check: Starting...")
+    console.log("🔍 Current working directory:", process.cwd())
+    console.log("🔍 NODE_ENV:", process.env.NODE_ENV)
+    console.log("🔍 Is development mode:", process.env.NODE_ENV === 'development')
+    
+    console.log("🔍 Environment Debug: Starting...")
+    console.log("🔍 Environment Debug: All Upstash variables:", {
+      UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
+      UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN
+    })
+    console.log("🔍 Environment Debug: Specific variables:", {
+      UPSTASH_KV_REST_API_URL: process.env.UPSTASH_KV_REST_API_URL,
+      UPSTASH_KV_REST_API_TOKEN: process.env.UPSTASH_KV_REST_API_TOKEN,
+      UPSTASH_REDIS_URL: process.env.UPSTASH_REDIS_URL,
+      UPSTASH_KV_URL: process.env.UPSTASH_KV_URL
+    })
+    
+    console.log("📁 File Test: Starting...")
+    console.log("📁 File Test: .env.local exists:", require('fs').existsSync('.env.local'))
+    console.log("📁 File Test: .env.local path:", require('path').join(process.cwd(), '.env.local'))
     
     const kvAvailable = await isKVAvailable()
     

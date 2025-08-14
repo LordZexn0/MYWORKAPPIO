@@ -71,6 +71,11 @@ export default function WhyUsPage() {
     }
   }
 
+  // Ensure arrays exist
+  const stats = whyUsData.stats || []
+  const reasonsItems = whyUsData.reasons?.items || []
+  const processSteps = whyUsData.process?.steps || []
+
   return (
     <>
       <AnimatePresence>{isLoading && <LoadingScreen onLoadingComplete={handleLoadingComplete} />}</AnimatePresence>
@@ -95,7 +100,7 @@ export default function WhyUsPage() {
         <section className="py-16 px-4 md:px-8 bg-white">
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {whyUsData.stats.map((stat, index) => (
+              {stats.map((stat, index) => (
                 <motion.div
                   key={stat.label}
                   initial={{ opacity: 0, y: 20 }}
@@ -122,7 +127,7 @@ export default function WhyUsPage() {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {whyUsData.reasons.items.map((reason, index) => {
+              {reasonsItems.map((reason, index) => {
                 const IconComponent = iconMap[reason.icon as keyof typeof iconMap]
                 return (
                   <motion.div
@@ -155,7 +160,7 @@ export default function WhyUsPage() {
             </div>
 
             <div className="grid md:grid-cols-4 gap-8">
-              {whyUsData.process.steps.map((item, index) => (
+              {processSteps.map((item, index) => (
                 <motion.div
                   key={item.step}
                   initial={{ opacity: 0, y: 20 }}

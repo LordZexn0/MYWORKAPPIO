@@ -50,6 +50,10 @@ export default function CaseStudiesPage() {
     }
   }
 
+  // Ensure items array exists
+  const caseStudiesItems = caseStudiesData.items || []
+  const statsItems = caseStudiesData.stats?.items || []
+
   return (
     <>
       <AnimatePresence>{isLoading && <LoadingScreen onLoadingComplete={handleLoadingComplete} />}</AnimatePresence>
@@ -72,7 +76,7 @@ export default function CaseStudiesPage() {
         <section className="py-20 px-4 md:px-8">
           <div className="max-w-7xl mx-auto">
             <div className="space-y-16">
-              {caseStudiesData.items.map((study, index) => (
+              {caseStudiesItems.map((study, index) => (
                 <motion.div
                   key={study.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -93,7 +97,7 @@ export default function CaseStudiesPage() {
 
                   <div className={index % 2 === 1 ? "md:col-start-1 md:row-start-1" : ""}>
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {study.tags.map((tag) => (
+                      {(study.tags || []).map((tag) => (
                         <span
                           key={tag}
                           className="px-3 py-1 bg-[#FFCF40]/20 text-[#FF6B35] text-sm font-medium rounded-full"
@@ -124,12 +128,12 @@ export default function CaseStudiesPage() {
                       <p className="text-gray-600 mb-4">{study.solution}</p>
                     </div>
 
-                    <div className="mb-6">
-                      <h3 className="font-semibold text-[#FF6B35] mb-3">Results:</h3>
+                    <div className="space-y-3">
+                      <h4 className="text-lg font-semibold text-[#FF6B35] mb-3">Key Results:</h4>
                       <ul className="space-y-2">
-                        {study.results.map((result, resultIndex) => (
+                        {(study.results || []).map((result, resultIndex) => (
                           <li key={resultIndex} className="flex items-start">
-                            <ArrowRight className="w-4 h-4 text-[#FFCF40] mr-2 mt-0.5 flex-shrink-0" />
+                            <span className="w-2 h-2 bg-[#FFCF40] rounded-full mr-3 mt-2 flex-shrink-0"></span>
                             <span className="text-gray-600">{result}</span>
                           </li>
                         ))}
@@ -159,7 +163,7 @@ export default function CaseStudiesPage() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {caseStudiesData.stats.items.map((stat, index) => (
+              {statsItems.map((stat, index) => (
                 <motion.div
                   key={stat.label}
                   initial={{ opacity: 0, y: 20 }}

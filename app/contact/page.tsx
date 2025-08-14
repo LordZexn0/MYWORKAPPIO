@@ -63,6 +63,9 @@ export default function ContactPage() {
     ]
   }
 
+  // Ensure info array exists
+  const contactInfo = contactData.info || []
+
   return (
     <>
       <AnimatePresence>{isLoading && <LoadingScreen onLoadingComplete={handleLoadingComplete} />}</AnimatePresence>
@@ -100,7 +103,7 @@ export default function ContactPage() {
                   </div>
 
                   <div className="space-y-6">
-                    {contactData.info.map((item, index) => {
+                    {contactInfo.map((item, index) => {
                       const IconComponent = iconMap[item.icon as keyof typeof iconMap]
                       const bgColors = ["bg-[#0F4C81]", "bg-[#FF6B35]", "bg-[#FFCF40]", "bg-[#0F4C81]"]
                       const bgColor = bgColors[index % bgColors.length]
