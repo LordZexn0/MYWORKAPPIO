@@ -33,6 +33,46 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 
+function generateId() {
+  try {
+    return crypto.randomUUID()
+  } catch {
+    return `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  }
+}
+
+function assignIds(input: any): any {
+  if (Array.isArray(input)) {
+    return input.map((item) => assignIds(item))
+  }
+  if (input && typeof input === "object") {
+    const obj: any = { ...input }
+    if (obj && typeof obj === "object" && !("id" in obj) && !("_id" in obj)) {
+      obj._id = generateId()
+    }
+    for (const key of Object.keys(obj)) {
+      obj[key] = assignIds(obj[key])
+    }
+    return obj
+  }
+  return input
+}
+
+function stripPrivateKeys(input: any): any {
+  if (Array.isArray(input)) {
+    return input.map((item) => stripPrivateKeys(item))
+  }
+  if (input && typeof input === "object") {
+    const obj: any = {}
+    for (const [k, v] of Object.entries(input)) {
+      if (k === "_id") continue
+      obj[k] = stripPrivateKeys(v)
+    }
+    return obj
+  }
+  return input
+}
+
 interface CMSData {
   site?: {
     name?: string
@@ -316,6 +356,7 @@ function ImageUpload({ currentImage, onImageChange, label, description, aspectRa
 
 export default function AdminPage() {
   const [data, setData] = useState<CMSData | null>(null)
+  const [originalData, setOriginalData] = useState<CMSData | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState("site")
@@ -331,7 +372,9 @@ export default function AdminPage() {
       const response = await fetch("/api/cms")
       if (!response.ok) throw new Error('Failed to fetch CMS data')
       const result = await response.json()
-      setData(result)
+      const withIds = assignIds(result)
+      setOriginalData(withIds)
+      setData(withIds)
     } catch (error) {
       console.error('Error fetching CMS data:', error)
       toast({
@@ -354,7 +397,7 @@ export default function AdminPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(stripPrivateKeys(data)),
       })
 
       const result = await response.json()
@@ -399,8 +442,31 @@ export default function AdminPage() {
       current = current[path[i]]
     }
 
-    current[path[path.length - 1]] = value
+    const key = path[path.length - 1]
+    // If input was cleared to empty string, store empty string (avoid fallback values)
+    if (typeof value === 'string' && value === '') {
+      current[key] = ''
+    } else {
+      current[key] = value
+    }
     setData(newData)
+  }
+
+  function getValueAtPath(obj: any, path: string[]): any {
+    try {
+      return path.reduce((acc: any, key: string) => (acc ? acc[key] : undefined), obj)
+    } catch {
+      return undefined
+    }
+  }
+
+  function Prev({ path }: { path: string[] }) {
+    if (!originalData) return null
+    const prev = getValueAtPath(originalData, path)
+    if (prev === undefined || prev === null || prev === "") return null
+    return (
+      <div className="mt-1 text-xs text-gray-500">Previous: {String(prev)}</div>
+    )
   }
 
   if (loading) {
@@ -523,6 +589,7 @@ export default function AdminPage() {
                         onChange={(e) => updateData(["site", "name"], e.target.value)}
                         placeholder="MyWorkApp.io"
                       />
+                      <Prev path={["site", "name"]} />
                     </div>
                     <div>
                       <Label htmlFor="tagline">Tagline</Label>
@@ -532,6 +599,7 @@ export default function AdminPage() {
                         onChange={(e) => updateData(["site", "tagline"], e.target.value)}
                         placeholder="Modern Solutions For Tomorrow's Challenges"
                       />
+                      <Prev path={["site", "tagline"]} />
                     </div>
                     <div>
                       <Label htmlFor="description">Site Description</Label>
@@ -542,6 +610,7 @@ export default function AdminPage() {
                         placeholder="End-to-end turnkey solutions for logistics..."
                         rows={4}
                       />
+                      <Prev path={["site", "description"]} />
                     </div>
                   </div>
                   <div className="space-y-6">
@@ -581,6 +650,7 @@ export default function AdminPage() {
                     onChange={(e) => updateData(["navigation", "ctaButton"], e.target.value)}
                     placeholder="Get Started"
                   />
+                  <Prev path={["navigation", "ctaButton"]} />
                 </div>
 
                 <Separator />
@@ -588,7 +658,7 @@ export default function AdminPage() {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Navigation Items</h3>
                   {(data.navigation?.items || []).map((item: any, index: number) => (
-                    <div key={index} className="flex gap-2">
+                    <div key={item?._id || index} className="flex gap-2">
                       <Input
                         value={item.href || ""}
                         onChange={(e) => {
@@ -598,6 +668,7 @@ export default function AdminPage() {
                         }}
                         placeholder="/services"
                       />
+                      <Prev path={["navigation", "items", String(index), "href"]} />
                       <Input
                         value={item.label || ""}
                         onChange={(e) => {
@@ -607,6 +678,7 @@ export default function AdminPage() {
                         }}
                         placeholder="Services"
                       />
+                      <Prev path={["navigation", "items", String(index), "label"]} />
                       <Button
                         variant="ghost"
                         size="sm"
@@ -625,7 +697,7 @@ export default function AdminPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      const newItems = [...(data.navigation?.items || []), { href: "", label: "" }];
+                      const newItems = [...(data.navigation?.items || []), { _id: generateId(), href: "", label: "" }];
                       updateData(["navigation", "items"], newItems);
                     }}
                   >
@@ -653,6 +725,7 @@ export default function AdminPage() {
                     placeholder="Transforming operations with turnkey solutions..."
                     rows={3}
                   />
+                  <Prev path={["footer", "description"]} />
                 </div>
 
                 <Separator />
@@ -660,7 +733,7 @@ export default function AdminPage() {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Quick Links</h3>
                   {(data.footer?.quickLinks?.items || []).map((link: any, index: number) => (
-                    <div key={index} className="flex gap-2">
+                    <div key={link?._id || index} className="flex gap-2">
                       <Input
                         value={link.href || ""}
                         onChange={(e) => {
@@ -670,6 +743,7 @@ export default function AdminPage() {
                         }}
                         placeholder="/services"
                       />
+                      <Prev path={["footer", "quickLinks", "items", String(index), "href"]} />
                       <Input
                         value={link.label || ""}
                         onChange={(e) => {
@@ -679,6 +753,7 @@ export default function AdminPage() {
                         }}
                         placeholder="Services"
                       />
+                      <Prev path={["footer", "quickLinks", "items", String(index), "label"]} />
                       <Button
                         variant="ghost"
                         size="sm"
@@ -697,7 +772,7 @@ export default function AdminPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      const newItems = [...(data.footer?.quickLinks?.items || []), { href: "", label: "" }];
+                      const newItems = [...(data.footer?.quickLinks?.items || []), { _id: generateId(), href: "", label: "" }];
                       updateData(["footer", "quickLinks", "items"], newItems);
                     }}
                   >
@@ -710,7 +785,7 @@ export default function AdminPage() {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Contact Information</h3>
                   {(data.footer?.contact?.items || []).map((item: string, index: number) => (
-                    <div key={index} className="flex gap-2">
+                    <div key={`${index}-${item ?? ''}`} className="flex gap-2">
                       <Input
                         value={item || ""}
                         onChange={(e) => {
@@ -720,6 +795,7 @@ export default function AdminPage() {
                         }}
                         placeholder="Contact information"
                       />
+                      <Prev path={["footer", "contact", "items", String(index)]} />
                       <Button
                         variant="ghost"
                         size="sm"
@@ -751,7 +827,7 @@ export default function AdminPage() {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Legal Links</h3>
                   {(data.footer?.legal || []).map((link: any, index: number) => (
-                    <div key={index} className="flex gap-2">
+                    <div key={link?._id || index} className="flex gap-2">
                       <Input
                         value={link.href || ""}
                         onChange={(e) => {
@@ -761,6 +837,7 @@ export default function AdminPage() {
                         }}
                         placeholder="/privacy"
                       />
+                      <Prev path={["footer", "legal", String(index), "href"]} />
                       <Input
                         value={link.label || ""}
                         onChange={(e) => {
@@ -770,6 +847,7 @@ export default function AdminPage() {
                         }}
                         placeholder="Privacy Policy"
                       />
+                      <Prev path={["footer", "legal", String(index), "label"]} />
                       <Button
                         variant="ghost"
                         size="sm"
@@ -788,7 +866,7 @@ export default function AdminPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      const newLegal = [...(data.footer?.legal || []), { href: "", label: "" }];
+                      const newLegal = [...(data.footer?.legal || []), { _id: generateId(), href: "", label: "" }];
                       updateData(["footer", "legal"], newLegal);
                     }}
                   >
@@ -804,6 +882,7 @@ export default function AdminPage() {
                     onChange={(e) => updateData(["footer", "copyright"], e.target.value)}
                     placeholder="© {year} MyWorkApp.io. All rights reserved."
                   />
+                  <Prev path={["footer", "copyright"]} />
                 </div>
               </CardContent>
             </Card>
@@ -853,7 +932,7 @@ export default function AdminPage() {
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold">Supply Chain Steps</h3>
                   {(data.supplyChain?.steps || []).map((step: any, index: number) => (
-                    <Card key={index} className="border-l-4 border-l-blue-500">
+                    <Card key={step?._id || index} className="border-l-4 border-l-blue-500">
                       <CardHeader>
                         <CardTitle className="text-base">Step {index + 1}</CardTitle>
                       </CardHeader>
@@ -989,7 +1068,7 @@ export default function AdminPage() {
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {(data.home?.stats || []).map((stat: any, index: number) => (
-                    <div key={index} className="space-y-2">
+                    <div key={stat?._id || index} className="space-y-2">
                       <Label>Stat {index + 1}</Label>
                       <div className="space-y-2">
                         <Input
@@ -1049,7 +1128,7 @@ export default function AdminPage() {
                   <Label>Services List</Label>
                   <div className="space-y-2">
                     {(data.home?.overview?.services || []).map((service: string, index: number) => (
-                      <div key={index} className="flex gap-2">
+                      <div key={`${index}-${service ?? ''}`} className="flex gap-2">
                         <Input
                           value={service || ""}
                           onChange={(e) => {
@@ -1186,7 +1265,7 @@ export default function AdminPage() {
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold">Service Items</h3>
                   {data.services?.items?.map((service: any, index: number) => (
-                    <Card key={service.id || index} className="border-l-4 border-l-blue-500">
+                    <Card key={service?._id || service?.id || index} className="border-l-4 border-l-blue-500">
                       <CardHeader>
                         <CardTitle className="text-base">Service {index + 1}</CardTitle>
                       </CardHeader>
@@ -1318,7 +1397,7 @@ export default function AdminPage() {
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold">Case Study Items</h3>
                   {data.caseStudies?.items?.map((caseStudy: any, index: number) => (
-                    <Card key={caseStudy.id || index} className="border-l-4 border-l-green-500">
+                    <Card key={caseStudy?._id || caseStudy?.id || index} className="border-l-4 border-l-green-500">
                       <CardHeader>
                         <CardTitle className="text-base">Case Study {index + 1}</CardTitle>
                       </CardHeader>
@@ -1400,7 +1479,7 @@ export default function AdminPage() {
                   <h3 className="text-lg font-semibold">Stats Section</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {(data.caseStudies?.stats?.items || []).map((stat: any, index: number) => (
-                      <div key={index} className="space-y-2">
+                      <div key={stat?._id || index} className="space-y-2">
                         <Label>Stat {index + 1}</Label>
                         <div className="space-y-2">
                           <Input
@@ -1528,7 +1607,7 @@ export default function AdminPage() {
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {(data.whyUs?.stats || []).map((stat: any, index: number) => (
-                    <div key={index} className="space-y-2">
+                    <div key={stat?._id || index} className="space-y-2">
                       <Label>Stat {index + 1}</Label>
                       <div className="space-y-2">
                         <Input
@@ -1601,7 +1680,7 @@ export default function AdminPage() {
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold">Reason Items</h3>
                   {(data.whyUs?.reasons?.items || []).map((reason: any, index: number) => (
-                    <Card key={index} className="border-l-4 border-l-orange-500">
+                    <Card key={reason?._id || index} className="border-l-4 border-l-orange-500">
                       <CardHeader>
                         <CardTitle className="text-base">Reason {index + 1}</CardTitle>
                       </CardHeader>
@@ -1688,7 +1767,7 @@ export default function AdminPage() {
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold">Process Steps</h3>
                   {(data.whyUs?.process?.steps || []).map((step: any, index: number) => (
-                    <Card key={index} className="border-l-4 border-l-blue-500">
+                    <Card key={step?._id || index} className="border-l-4 border-l-blue-500">
                       <CardHeader>
                         <CardTitle className="text-base">Step {index + 1}</CardTitle>
                       </CardHeader>
@@ -1834,7 +1913,7 @@ export default function AdminPage() {
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {(data.contact?.info || []).map((info: any, index: number) => (
-                    <div key={index} className="space-y-2">
+                    <div key={info?._id || index} className="space-y-2">
                       <Label>Contact Info {index + 1}</Label>
                       <div className="space-y-2">
                         <Input
@@ -2065,7 +2144,7 @@ export default function AdminPage() {
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   {(data.blog?.posts || []).map((post: any, index: number) => (
-                    <Card key={post.id || index}>
+                    <Card key={post?._id || post?.id || index}>
                       <CardContent className="pt-6">
                         <div className="flex items-center justify-between mb-4">
                           <h3 className="text-lg font-semibold">{post.title || "Untitled Post"}</h3>
