@@ -1,0 +1,5 @@
+[33mf7d8854[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Initial commit: MyWorkAppio web application
+[33m42d8a15[m[33m ([m[1;31morigin/main[m[33m)[m Fix build errors: Add null checks for CMS data arrays and improve error handling
+[33mb873dd3[m Fix CMS database: Add Redis support and improve error handling
+[33mea12af1[m Revert CMS data structure to match admin panel expectations and fix save functionality
+[33mb65f15f[m Fix data structure mismatches in CMS default content to match page expectations
