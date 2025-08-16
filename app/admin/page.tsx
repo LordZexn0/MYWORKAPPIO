@@ -29,7 +29,9 @@ import {
   Eye,
   Trash2,
   BarChart3,
-  ArrowRight
+  ArrowRight,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react"
 import Image from "next/image"
 
@@ -359,6 +361,7 @@ export default function AdminPage() {
   const [originalData, setOriginalData] = useState<CMSData | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [dirty, setDirty] = useState(false)
   const [activeTab, setActiveTab] = useState("site")
   const { toast } = useToast()
 
@@ -375,6 +378,7 @@ export default function AdminPage() {
       const withIds = assignIds(result)
       setOriginalData(withIds)
       setData(withIds)
+      setDirty(false)
     } catch (error) {
       console.error('Error fetching CMS data:', error)
       toast({
@@ -405,7 +409,9 @@ export default function AdminPage() {
       if (result.success) {
         // Clear the CMS cache so fresh data is loaded
         clearCMSCache()
-        
+        // Refresh data and reset dirty state
+        await fetchData()
+        setDirty(false)
         toast({
           title: "✅ Changes Saved",
           description: result.storage === "kv" 
@@ -450,6 +456,7 @@ export default function AdminPage() {
       current[key] = value
     }
     setData(newData)
+    setDirty(true)
   }
 
   function getValueAtPath(obj: any, path: string[]): any {
@@ -467,6 +474,22 @@ export default function AdminPage() {
     return (
       <div className="mt-1 text-xs text-gray-500">Previous: {String(prev)}</div>
     )
+  }
+
+  function reorderArrayAtPath(path: string[], fromIndex: number, toIndex: number) {
+    if (!data) return
+    const parentPath = path.slice(0, -1)
+    const arrayKey = path[path.length - 1]
+    let parent: any = data
+    for (const key of parentPath) {
+      if (!parent[key]) parent[key] = {}
+      parent = parent[key]
+    }
+    const arr: any[] = Array.isArray(parent[arrayKey]) ? [...parent[arrayKey]] : []
+    if (fromIndex < 0 || fromIndex >= arr.length || toIndex < 0 || toIndex >= arr.length) return
+    const [moved] = arr.splice(fromIndex, 1)
+    arr.splice(toIndex, 0, moved)
+    updateData(path, arr)
   }
 
   if (loading) {
@@ -658,7 +681,7 @@ export default function AdminPage() {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Navigation Items</h3>
                   {(data.navigation?.items || []).map((item: any, index: number) => (
-                    <div key={item?._id || index} className="flex gap-2">
+                    <div key={item?._id || index} className="flex gap-2 items-start">
                       <Input
                         value={item.href || ""}
                         onChange={(e) => {
@@ -679,7 +702,28 @@ export default function AdminPage() {
                         placeholder="Services"
                       />
                       <Prev path={["navigation", "items", String(index), "label"]} />
-                      <Button
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => reorderArrayAtPath(["navigation", "items"], index, Math.max(0, index - 1))}
+                          disabled={index === 0}
+                          title="Move up"
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => reorderArrayAtPath(["navigation", "items"], index, Math.min((data.navigation?.items?.length || 1) - 1, index + 1))}
+                          disabled={index === (data.navigation?.items?.length || 1) - 1}
+                          title="Move down"
+                        >
+                          <ArrowDown className="h-4 w-4" />
+                        </Button>
+                        <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => {
@@ -690,7 +734,8 @@ export default function AdminPage() {
                         className="text-red-500"
                       >
                         <X className="h-4 w-4" />
-                      </Button>
+                        </Button>
+                      </div>
                     </div>
                   ))}
                   <Button
@@ -733,7 +778,7 @@ export default function AdminPage() {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Quick Links</h3>
                   {(data.footer?.quickLinks?.items || []).map((link: any, index: number) => (
-                    <div key={link?._id || index} className="flex gap-2">
+                    <div key={link?._id || index} className="flex gap-2 items-start">
                       <Input
                         value={link.href || ""}
                         onChange={(e) => {
@@ -754,7 +799,28 @@ export default function AdminPage() {
                         placeholder="Services"
                       />
                       <Prev path={["footer", "quickLinks", "items", String(index), "label"]} />
-                      <Button
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => reorderArrayAtPath(["footer", "quickLinks", "items"], index, Math.max(0, index - 1))}
+                          disabled={index === 0}
+                          title="Move up"
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => reorderArrayAtPath(["footer", "quickLinks", "items"], index, Math.min((data.footer?.quickLinks?.items?.length || 1) - 1, index + 1))}
+                          disabled={index === (data.footer?.quickLinks?.items?.length || 1) - 1}
+                          title="Move down"
+                        >
+                          <ArrowDown className="h-4 w-4" />
+                        </Button>
+                        <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => {
@@ -765,7 +831,8 @@ export default function AdminPage() {
                         className="text-red-500"
                       >
                         <X className="h-4 w-4" />
-                      </Button>
+                        </Button>
+                      </div>
                     </div>
                   ))}
                   <Button
@@ -827,7 +894,7 @@ export default function AdminPage() {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Legal Links</h3>
                   {(data.footer?.legal || []).map((link: any, index: number) => (
-                    <div key={link?._id || index} className="flex gap-2">
+                    <div key={link?._id || index} className="flex gap-2 items-start">
                       <Input
                         value={link.href || ""}
                         onChange={(e) => {
@@ -848,7 +915,28 @@ export default function AdminPage() {
                         placeholder="Privacy Policy"
                       />
                       <Prev path={["footer", "legal", String(index), "label"]} />
-                      <Button
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => reorderArrayAtPath(["footer", "legal"], index, Math.max(0, index - 1))}
+                          disabled={index === 0}
+                          title="Move up"
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => reorderArrayAtPath(["footer", "legal"], index, Math.min((data.footer?.legal?.length || 1) - 1, index + 1))}
+                          disabled={index === (data.footer?.legal?.length || 1) - 1}
+                          title="Move down"
+                        >
+                          <ArrowDown className="h-4 w-4" />
+                        </Button>
+                        <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => {
@@ -859,7 +947,8 @@ export default function AdminPage() {
                         className="text-red-500"
                       >
                         <X className="h-4 w-4" />
-                      </Button>
+                        </Button>
+                      </div>
                     </div>
                   ))}
                   <Button
@@ -987,6 +1076,28 @@ export default function AdminPage() {
                             placeholder="text-[#0F4C81]"
                           />
                         </div>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => reorderArrayAtPath(["supplyChain", "steps"], index, Math.max(0, index - 1))}
+                            disabled={index === 0}
+                            title="Move up"
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => reorderArrayAtPath(["supplyChain", "steps"], index, Math.min((data.supplyChain?.steps?.length || 1) - 1, index + 1))}
+                            disabled={index === (data.supplyChain?.steps?.length || 1) - 1}
+                            title="Move down"
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
@@ -1090,6 +1201,28 @@ export default function AdminPage() {
                           placeholder="Projects Completed"
                         />
                       </div>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => reorderArrayAtPath(["home", "stats"], index, Math.max(0, index - 1))}
+                          disabled={index === 0}
+                          title="Move up"
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => reorderArrayAtPath(["home", "stats"], index, Math.min((data.home?.stats?.length || 1) - 1, index + 1))}
+                          disabled={index === (data.home?.stats?.length || 1) - 1}
+                          title="Move down"
+                        >
+                          <ArrowDown className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1128,7 +1261,7 @@ export default function AdminPage() {
                   <Label>Services List</Label>
                   <div className="space-y-2">
                     {(data.home?.overview?.services || []).map((service: string, index: number) => (
-                      <div key={`${index}-${service ?? ''}`} className="flex gap-2">
+                      <div key={`${index}-${service ?? ''}`} className="flex gap-2 items-center">
                         <Input
                           value={service || ""}
                           onChange={(e) => {
@@ -1138,6 +1271,26 @@ export default function AdminPage() {
                           }}
                           placeholder="Service name"
                         />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => reorderArrayAtPath(["home", "overview", "services"], index, Math.max(0, index - 1))}
+                          disabled={index === 0}
+                          title="Move up"
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => reorderArrayAtPath(["home", "overview", "services"], index, Math.min((data.home?.overview?.services?.length || 1) - 1, index + 1))}
+                          disabled={index === (data.home?.overview?.services?.length || 1) - 1}
+                          title="Move down"
+                        >
+                          <ArrowDown className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -1308,6 +1461,28 @@ export default function AdminPage() {
                              />
                            </div>
                         </div>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => reorderArrayAtPath(["services", "items"], index, Math.max(0, index - 1))}
+                            disabled={index === 0}
+                            title="Move up"
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => reorderArrayAtPath(["services", "items"], index, Math.min((data.services?.items?.length || 1) - 1, index + 1))}
+                            disabled={index === (data.services?.items?.length || 1) - 1}
+                            title="Move down"
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
@@ -1467,6 +1642,28 @@ export default function AdminPage() {
                             />
                           </div>
                         </div>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => reorderArrayAtPath(["caseStudies", "items"], index, Math.max(0, index - 1))}
+                            disabled={index === 0}
+                            title="Move up"
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => reorderArrayAtPath(["caseStudies", "items"], index, Math.min((data.caseStudies?.items?.length || 1) - 1, index + 1))}
+                            disabled={index === (data.caseStudies?.items?.length || 1) - 1}
+                            title="Move down"
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
@@ -1509,6 +1706,28 @@ export default function AdminPage() {
                             }}
                             placeholder="text-[#FF6B35]"
                           />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => reorderArrayAtPath(["caseStudies", "stats", "items"], index, Math.max(0, index - 1))}
+                            disabled={index === 0}
+                            title="Move up"
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => reorderArrayAtPath(["caseStudies", "stats", "items"], index, Math.min((data.caseStudies?.stats?.items?.length || 1) - 1, index + 1))}
+                            disabled={index === (data.caseStudies?.stats?.items?.length || 1) - 1}
+                            title="Move down"
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -1638,6 +1857,28 @@ export default function AdminPage() {
                           placeholder="text-[#FF6B35]"
                         />
                       </div>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => reorderArrayAtPath(["whyUs", "stats"], index, Math.max(0, index - 1))}
+                          disabled={index === 0}
+                          title="Move up"
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => reorderArrayAtPath(["whyUs", "stats"], index, Math.min((data.whyUs?.stats?.length || 1) - 1, index + 1))}
+                          disabled={index === (data.whyUs?.stats?.length || 1) - 1}
+                          title="Move down"
+                        >
+                          <ArrowDown className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1724,6 +1965,28 @@ export default function AdminPage() {
                             rows={3}
                           />
                         </div>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => reorderArrayAtPath(["whyUs", "reasons", "items"], index, Math.max(0, index - 1))}
+                            disabled={index === 0}
+                            title="Move up"
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => reorderArrayAtPath(["whyUs", "reasons", "items"], index, Math.min((data.whyUs?.reasons?.items?.length || 1) - 1, index + 1))}
+                            disabled={index === (data.whyUs?.reasons?.items?.length || 1) - 1}
+                            title="Move down"
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
@@ -1809,6 +2072,28 @@ export default function AdminPage() {
                               placeholder="We analyze your needs..."
                             />
                           </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => reorderArrayAtPath(["whyUs", "process", "steps"], index, Math.max(0, index - 1))}
+                            disabled={index === 0}
+                            title="Move up"
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => reorderArrayAtPath(["whyUs", "process", "steps"], index, Math.min((data.whyUs?.process?.steps?.length || 1) - 1, index + 1))}
+                            disabled={index === (data.whyUs?.process?.steps?.length || 1) - 1}
+                            title="Move down"
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
