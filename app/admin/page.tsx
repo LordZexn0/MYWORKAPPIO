@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -34,6 +34,16 @@ import {
   ArrowDown
 } from "lucide-react"
 import Image from "next/image"
+
+const sections = [
+  { value: "site", label: "Site", icon: Settings },
+  { value: "home", label: "Home", icon: Home },
+  { value: "services", label: "Services", icon: Briefcase },
+  { value: "cases", label: "Case Studies", icon: FileText },
+  { value: "about", label: "Why Us", icon: Users },
+  { value: "contact", label: "Contact", icon: Phone },
+  { value: "blog", label: "Blog", icon: FileText },
+]
 
 function generateId() {
   try {
@@ -363,6 +373,8 @@ export default function AdminPage() {
   const [saving, setSaving] = useState(false)
   const [dirty, setDirty] = useState(false)
   const [activeTab, setActiveTab] = useState("site")
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null)
+  const [sectionQuery, setSectionQuery] = useState("")
   const { toast } = useToast()
 
   useEffect(() => {
@@ -391,7 +403,7 @@ export default function AdminPage() {
     }
   }
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async (options?: { silent?: boolean }) => {
     if (!data) return
 
     try {
@@ -412,14 +424,17 @@ export default function AdminPage() {
         // Refresh data and reset dirty state
         await fetchData()
         setDirty(false)
-        toast({
-          title: "✅ Changes Saved",
-          description: result.storage === "kv" 
-            ? "Your changes have been saved to cloud storage successfully."
-            : result.storage === "file"
-            ? "Your changes have been saved to local file storage."
-            : "Changes processed, but persistent storage is currently unavailable.",
-        })
+        setLastSavedAt(Date.now())
+        if (!options?.silent) {
+          toast({
+            title: "✅ Changes Saved",
+            description: result.storage === "kv" 
+              ? "Your changes have been saved to cloud storage successfully."
+              : result.storage === "file"
+              ? "Your changes have been saved to local file storage."
+              : "Changes processed, but persistent storage is currently unavailable.",
+          })
+        }
       } else {
         throw new Error(result.error || 'Failed to save changes')
       }
@@ -433,7 +448,43 @@ export default function AdminPage() {
     } finally {
       setSaving(false)
     }
-  }
+  }, [data, toast])
+
+  // Warn if navigating away with unsaved changes
+  useEffect(() => {
+    const beforeUnloadHandler = (e: BeforeUnloadEvent) => {
+      if (dirty) {
+        e.preventDefault()
+        e.returnValue = ""
+      }
+    }
+    window.addEventListener("beforeunload", beforeUnloadHandler)
+    return () => window.removeEventListener("beforeunload", beforeUnloadHandler)
+  }, [dirty])
+
+  // Keyboard shortcut: Ctrl/Cmd + S to save
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const isSave = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s"
+      if (isSave) {
+        e.preventDefault()
+        if (dirty && !saving) {
+          void handleSave()
+        }
+      }
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [dirty, saving, handleSave])
+
+  // Debounced autosave after inactivity when there are unsaved changes
+  useEffect(() => {
+    if (!dirty || saving) return
+    const timeoutId = window.setTimeout(() => {
+      void handleSave({ silent: true })
+    }, 2000)
+    return () => window.clearTimeout(timeoutId)
+  }, [dirty, saving, handleSave])
 
   const updateData = (path: string[], value: any) => {
     if (!data) return
@@ -533,11 +584,35 @@ export default function AdminPage() {
                 <h1 className="text-xl font-bold text-gray-900">Content Management System</h1>
               </div>
               <Badge variant="secondary">MyWorkApp.io</Badge>
+              {saving ? (
+                <Badge variant="secondary">Saving…</Badge>
+              ) : dirty ? (
+                <Badge variant="destructive">Unsaved changes</Badge>
+              ) : (
+                <Badge variant="outline">Saved{lastSavedAt ? ` at ${new Date(lastSavedAt).toLocaleTimeString()}` : ""}</Badge>
+              )}
             </div>
             <div className="flex items-center space-x-3">
-          <Button
-            onClick={handleSave}
-            disabled={saving}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  if (!dirty || !originalData) return
+                  const confirmed = window.confirm("Discard all unsaved changes?")
+                  if (confirmed) {
+                    setData(originalData)
+                    setDirty(false)
+                    toast({ title: "Changes discarded", description: "Your edits have been reverted." })
+                  }
+                }}
+                disabled={!dirty || saving}
+              >
+                <X className="h-4 w-4 mr-2" />
+                Discard
+              </Button>
+              <Button
+                onClick={() => handleSave()}
+                disabled={saving || !dirty}
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 {saving ? (
@@ -551,7 +626,7 @@ export default function AdminPage() {
                     Save Changes
                   </>
                 )}
-          </Button>
+              </Button>
             </div>
           </div>
         </div>
@@ -559,8 +634,47 @@ export default function AdminPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7 lg:w-auto lg:grid-cols-7">
+        <div className="lg:grid lg:grid-cols-12 lg:gap-6">
+          {/* Sidebar (desktop) */}
+          <aside className="hidden lg:block lg:col-span-3">
+            <Card>
+              <CardHeader>
+                <CardTitle>Sections</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <Input
+                    placeholder="Filter sections..."
+                    value={sectionQuery}
+                    onChange={(e) => setSectionQuery(e.target.value)}
+                  />
+                  <div className="space-y-2">
+                    {(sections.filter(s => s.label.toLowerCase().includes(sectionQuery.toLowerCase()))).map((s) => {
+                      const Icon = s.icon
+                      const isActive = activeTab === s.value
+                      return (
+                        <Button
+                          key={s.value}
+                          type="button"
+                          variant={isActive ? "default" : "ghost"}
+                          className="w-full justify-start"
+                          onClick={() => setActiveTab(s.value)}
+                        >
+                          <Icon className="h-4 w-4 mr-2" />
+                          {s.label}
+                        </Button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </aside>
+
+          {/* Content */}
+          <section className="lg:col-span-9">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+              <TabsList className="grid w-full grid-cols-7 lg:hidden">
             <TabsTrigger value="site" className="flex items-center space-x-2">
               <Settings className="h-4 w-4" />
               <span className="hidden sm:inline">Site</span>
@@ -589,7 +703,7 @@ export default function AdminPage() {
               <FileText className="h-4 w-4" />
               <span className="hidden sm:inline">Blog</span>
             </TabsTrigger>
-          </TabsList>
+              </TabsList>
 
           {/* Site Settings Tab */}
           <TabsContent value="site" className="space-y-6">
@@ -2592,7 +2706,9 @@ export default function AdminPage() {
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
+            </Tabs>
+          </section>
+        </div>
       </div>
       
       <Toaster />
