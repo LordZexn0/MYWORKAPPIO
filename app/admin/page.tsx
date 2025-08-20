@@ -437,6 +437,7 @@ interface TagEditorProps {
 
 function TagEditor({ tags, onChange, suggestions = [], label = "Tags", placeholder = "Add a tag and press Enter" }: TagEditorProps) {
   const [input, setInput] = useState("")
+  const [open, setOpen] = useState(false)
 
   const normalized = (t: string) => t.trim().replace(/\s+/g, " ")
 
@@ -458,14 +459,6 @@ function TagEditor({ tags, onChange, suggestions = [], label = "Tags", placehold
     onChange(next)
   }
 
-  const moveTag = (from: number, to: number) => {
-    if (from === to || from < 0 || to < 0 || from >= tags.length || to >= tags.length) return
-    const next = [...tags]
-    const [m] = next.splice(from, 1)
-    next.splice(to, 0, m)
-    onChange(next)
-  }
-
   const filteredSuggestions = suggestions
     .filter(Boolean)
     .filter((s) => s.toLowerCase().includes(input.toLowerCase()))
@@ -474,77 +467,79 @@ function TagEditor({ tags, onChange, suggestions = [], label = "Tags", placehold
 
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
-      <div className="flex flex-wrap gap-2">
-        {tags.map((tag, idx) => (
-          <div key={`${idx}-${tag}`} className="flex items-center gap-1 bg-gray-100 px-2 py-1 text-sm">
-            <span>{tag}</span>
-            <div className="flex">
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={() => moveTag(idx, Math.max(0, idx - 1))}
-                disabled={idx === 0}
-                title="Move up"
-              >
-                <ArrowUp className="h-3 w-3" />
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={() => moveTag(idx, Math.min(tags.length - 1, idx + 1))}
-                disabled={idx === tags.length - 1}
-                title="Move down"
-              >
-                <ArrowDown className="h-3 w-3" />
-              </Button>
-              <ConfirmButton
-                title="Remove tag?"
-                description="This will remove the tag from this item."
-                confirmText="Remove"
-                onConfirm={() => removeTag(idx)}
-              >
-                <Button type="button" variant="ghost" size="sm" className="text-red-500">
-                  <X className="h-3 w-3" />
-                </Button>
-              </ConfirmButton>
-            </div>
-          </div>
-        ))}
+      <div className="flex items-center justify-between">
+        <Label>{label}</Label>
+        <Button type="button" variant="outline" size="sm" onClick={() => setOpen((v) => !v)}>
+          {open ? "Close" : "Edit"}
+        </Button>
       </div>
-      <div className="relative">
-        <Input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ',') {
-              e.preventDefault()
-              addTag(input)
-            }
-            if (e.key === 'Backspace' && !input && tags.length > 0) {
-              // quick-remove last
-              removeTag(tags.length - 1)
-            }
-          }}
-          placeholder={placeholder}
-        />
-        {filteredSuggestions.length > 0 && (
-          <div className="absolute z-10 mt-1 w-full border bg-white shadow">
-            {filteredSuggestions.map((s) => (
-              <button
-                key={s}
-                type="button"
-                className="block w-full text-left px-3 py-2 hover:bg-gray-50"
-                onClick={() => addTag(s)}
-              >
-                {s}
-              </button>
+
+      {/* Collapsed summary */}
+      {!open && (
+        <div className="flex flex-wrap gap-2">
+          {tags.length > 0 ? (
+            tags.map((tag, idx) => (
+              <span key={`${idx}-${tag}`} className="bg-gray-100 px-2 py-1 text-sm">{tag}</span>
+            ))
+          ) : (
+            <span className="text-sm text-gray-500">No tags</span>
+          )}
+        </div>
+      )}
+
+      {/* Editor */}
+      {open && (
+        <>
+          <div className="flex flex-wrap gap-2">
+            {tags.map((tag, idx) => (
+              <div key={`${idx}-${tag}`} className="flex items-center gap-1 bg-gray-100 px-2 py-1 text-sm">
+                <span>{tag}</span>
+                <ConfirmButton
+                  title="Remove tag?"
+                  description="This will remove the tag from this item."
+                  confirmText="Remove"
+                  onConfirm={() => removeTag(idx)}
+                >
+                  <Button type="button" variant="ghost" size="sm" className="text-red-500">
+                    <X className="h-3 w-3" />
+                  </Button>
+                </ConfirmButton>
+              </div>
             ))}
           </div>
-        )}
-      </div>
+
+          <div className="relative">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ',') {
+                  e.preventDefault()
+                  addTag(input)
+                }
+                if (e.key === 'Backspace' && !input && tags.length > 0) {
+                  removeTag(tags.length - 1)
+                }
+              }}
+              placeholder={placeholder}
+            />
+            {filteredSuggestions.length > 0 && (
+              <div className="absolute z-10 mt-1 w-full border bg-white shadow">
+                {filteredSuggestions.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    className="block w-full text-left px-3 py-2 hover:bg-gray-50"
+                    onClick={() => addTag(s)}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   )
 }
