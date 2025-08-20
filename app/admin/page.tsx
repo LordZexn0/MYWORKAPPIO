@@ -106,6 +106,7 @@ interface CMSData {
     description?: string
     tagline?: string
     contact?: any
+    enabledPages?: Record<string, boolean>
   }
   navigation?: {
     items?: any[]
@@ -889,6 +890,59 @@ export default function AdminPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+                <div>
+                  <Label>Legal Pages Content</Label>
+                  <div className="grid grid-cols-1 gap-4 mt-2">
+                    <div>
+                      <Label htmlFor="privacyContent">Privacy Policy (Markdown/Text)</Label>
+                      <Textarea
+                        id="privacyContent"
+                        rows={8}
+                        value={(data.privacy?.content) || ""}
+                        onChange={(e) => updateData(["privacy", "content"], e.target.value)}
+                        placeholder="Enter your Privacy Policy content here..."
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="termsContent">Terms of Service (Markdown/Text)</Label>
+                      <Textarea
+                        id="termsContent"
+                        rows={8}
+                        value={(data.terms?.content) || ""}
+                        onChange={(e) => updateData(["terms", "content"], e.target.value)}
+                        placeholder="Enter your Terms of Service content here..."
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <Label>Page Visibility</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                    {[
+                      { key: "home", label: "Home" },
+                      { key: "services", label: "Services" },
+                      { key: "whyUs", label: "Why Us" },
+                      { key: "caseStudies", label: "Case Studies" },
+                      { key: "blog", label: "Blog" },
+                      { key: "contact", label: "Contact" },
+                      { key: "privacy", label: "Privacy Policy" },
+                      { key: "terms", label: "Terms of Service" },
+                    ].map((p) => (
+                      <label key={p.key} className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={(data.site?.enabledPages?.[p.key as any]) !== false}
+                          onChange={(e) => {
+                            const current = data.site?.enabledPages || {}
+                            const next = { ...current, [p.key]: e.target.checked }
+                            updateData(["site", "enabledPages"], next)
+                          }}
+                        />
+                        {p.label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div>
@@ -1916,6 +1970,36 @@ export default function AdminPage() {
                       </Button>
                     </div>
                   </div>
+                  <div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const items = [...(data.caseStudies?.items || [])]
+                        const nextId = items.reduce((max, it) => {
+                          const val = typeof it?.id === 'number' ? it.id : Number(it?.id) || 0
+                          return Math.max(max, val)
+                        }, 0) + 1
+                        const newItem = {
+                          _id: generateId(),
+                          id: nextId,
+                          title: "",
+                          client: "",
+                          industry: "",
+                          location: "",
+                          date: "",
+                          challenge: "",
+                          solution: "",
+                          results: [],
+                          image: "",
+                          tags: []
+                        }
+                        updateData(["caseStudies", "items"], [...items, newItem])
+                      }}
+                    >
+                      Add Case Study
+                    </Button>
+                  </div>
                   {data.caseStudies?.items?.map((caseStudy: any, index: number) => (
                     <Card key={caseStudy?._id || caseStudy?.id || index} className="border-l-4 border-l-green-500">
                       <CardHeader className="flex flex-row items-center justify-between">
@@ -2164,34 +2248,6 @@ export default function AdminPage() {
                       )}
                     </Card>
                   ))}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const items = [...(data.caseStudies?.items || [])]
-                      const nextId = items.reduce((max, it) => {
-                        const val = typeof it?.id === 'number' ? it.id : Number(it?.id) || 0
-                        return Math.max(max, val)
-                      }, 0) + 1
-                      const newItem = {
-                        _id: generateId(),
-                        id: nextId,
-                        title: "",
-                        client: "",
-                        industry: "",
-                        location: "",
-                        date: "",
-                        challenge: "",
-                        solution: "",
-                        results: [],
-                        image: "",
-                        tags: []
-                      }
-                      updateData(["caseStudies", "items"], [...items, newItem])
-                    }}
-                  >
-                    Add Case Study
-                  </Button>
                 </div>
 
                 <Separator />

@@ -12,6 +12,22 @@ export default function Navigation() {
   const { content } = useCMS()
   const { site, navigation } = content
 
+  const isPageEnabled = (href: string) => {
+    const map: Record<string, keyof typeof site & any> = {
+      "/": "home",
+      "/services": "services",
+      "/why-us": "whyUs",
+      "/case-studies": "caseStudies",
+      "/blog": "blog",
+      "/contact": "contact",
+      "/privacy": "privacy",
+      "/terms": "terms",
+    }
+    const key = map[href]
+    const enabled = (site as any)?.enabledPages?.[key]
+    return enabled !== false
+  }
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10)
@@ -37,7 +53,7 @@ export default function Navigation() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {navigation.items.map((item) => (
+            {navigation.items.filter((item) => isPageEnabled(item.href)).map((item) => (
               <Link
                 key={item.href}
                 href={item.href}

@@ -6,9 +6,11 @@ import { AnimatePresence } from "framer-motion"
 import Navigation from "@/components/navigation"
 import Footer from "@/components/footer"
 import LoadingScreen from "@/app/loading-screen"
+import { useCMS } from "@/hooks/use-cms"
 
 export default function PrivacyPolicyPage() {
   const [isLoading, setIsLoading] = useState(true)
+  const { content } = useCMS()
 
   const handleLoadingComplete = () => {
     setIsLoading(false)
@@ -41,9 +43,7 @@ export default function PrivacyPolicyPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <h1 className="text-4xl md:text-6xl font-bold mb-6 font-heading text-[#0F4C81]">
-                Privacy Policy
-              </h1>
+              <h1 className="text-4xl md:text-6xl font-bold mb-6 font-heading text-[#0F4C81]">Privacy Policy</h1>
               <p className="text-xl text-gray-600">
                 Your privacy matters. This page explains what data we collect, how we use it, and your rights.
               </p>
@@ -54,13 +54,17 @@ export default function PrivacyPolicyPage() {
         {/* Content */}
         <section className="py-16 px-4 md:px-8">
           <div className="max-w-4xl mx-auto space-y-10">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <h2 className="text-2xl font-bold text-[#0F4C81] mb-3">Overview</h2>
-              <p className="text-gray-700 leading-relaxed">
-                We collect only the information necessary to provide and improve our services. We do not sell your
-                personal data. We are committed to transparency and security.
-              </p>
-            </motion.div>
+            {content.privacy?.content ? (
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                <div className="prose prose-blue max-w-none whitespace-pre-wrap">
+                  {content.privacy.content}
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                <p className="text-gray-700 leading-relaxed">Privacy Policy content coming soon.</p>
+              </motion.div>
+            )}
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
               <h2 className="text-2xl font-bold text-[#0F4C81] mb-3">Information We Collect</h2>

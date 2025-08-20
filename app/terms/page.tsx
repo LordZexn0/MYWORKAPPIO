@@ -6,9 +6,11 @@ import { AnimatePresence } from "framer-motion"
 import Navigation from "@/components/navigation"
 import Footer from "@/components/footer"
 import LoadingScreen from "@/app/loading-screen"
+import { useCMS } from "@/hooks/use-cms"
 
 export default function TermsOfServicePage() {
   const [isLoading, setIsLoading] = useState(true)
+  const { content } = useCMS()
 
   const handleLoadingComplete = () => {
     setIsLoading(false)
@@ -54,13 +56,17 @@ export default function TermsOfServicePage() {
         {/* Content */}
         <section className="py-16 px-4 md:px-8">
           <div className="max-w-4xl mx-auto space-y-10">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <h2 className="text-2xl font-bold text-[#0F4C81] mb-3">Acceptance of Terms</h2>
-              <p className="text-gray-700 leading-relaxed">
-                By accessing or using our website and services, you agree to be bound by these Terms of Service and our
-                Privacy Policy. If you do not agree to these terms, you may not use our services.
-              </p>
-            </motion.div>
+            {content.terms?.content ? (
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                <div className="prose prose-blue max-w-none whitespace-pre-wrap">
+                  {content.terms.content}
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                <p className="text-gray-700 leading-relaxed">Terms of Service content coming soon.</p>
+              </motion.div>
+            )}
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
               <h2 className="text-2xl font-bold text-[#0F4C81] mb-3">Use of Services</h2>
