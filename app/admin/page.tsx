@@ -36,6 +36,17 @@ import {
   ChevronRight
 } from "lucide-react"
 import Image from "next/image"
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog"
 
 const sections = [
   { value: "site", label: "Site", icon: Settings },
@@ -366,6 +377,42 @@ function ImageUpload({ currentImage, onImageChange, label, description, aspectRa
         )}
       </div>
     </div>
+  )
+}
+
+function ConfirmButton({
+  children,
+  title = "Are you sure?",
+  description = "This action cannot be undone.",
+  confirmText = "Delete",
+  onConfirm,
+}: {
+  children: React.ReactNode
+  title?: string
+  description?: string
+  confirmText?: string
+  onConfirm: () => void
+}) {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        {children}
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          {description ? (
+            <AlertDialogDescription>{description}</AlertDialogDescription>
+          ) : null}
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} className="bg-red-600 hover:bg-red-700">
+            {confirmText}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }
 
@@ -842,18 +889,24 @@ export default function AdminPage() {
                         >
                           <ArrowDown className="h-4 w-4" />
                         </Button>
-                        <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          const newItems = [...(data.navigation?.items || [])];
-                          newItems.splice(index, 1);
-                          updateData(["navigation", "items"], newItems);
-                        }}
-                        className="text-red-500"
-                      >
-                        <X className="h-4 w-4" />
-                        </Button>
+                        <ConfirmButton
+                          title="Remove navigation item?"
+                          description="This will permanently remove the navigation link."
+                          confirmText="Remove"
+                          onConfirm={() => {
+                            const newItems = [...(data.navigation?.items || [])]
+                            newItems.splice(index, 1)
+                            updateData(["navigation", "items"], newItems)
+                          }}
+                        >
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-500"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </ConfirmButton>
                       </div>
                     </div>
                   ))}
@@ -939,18 +992,24 @@ export default function AdminPage() {
                         >
                           <ArrowDown className="h-4 w-4" />
                         </Button>
-                        <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          const newItems = [...(data.footer?.quickLinks?.items || [])];
-                          newItems.splice(index, 1);
-                          updateData(["footer", "quickLinks", "items"], newItems);
-                        }}
-                        className="text-red-500"
-                      >
-                        <X className="h-4 w-4" />
-                        </Button>
+                        <ConfirmButton
+                          title="Remove quick link?"
+                          description="This will permanently remove the link from the footer."
+                          confirmText="Remove"
+                          onConfirm={() => {
+                            const newItems = [...(data.footer?.quickLinks?.items || [])]
+                            newItems.splice(index, 1)
+                            updateData(["footer", "quickLinks", "items"], newItems)
+                          }}
+                        >
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-500"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </ConfirmButton>
                       </div>
                     </div>
                   ))}
@@ -982,18 +1041,24 @@ export default function AdminPage() {
                         placeholder="Contact information"
                       />
                       <Prev path={["footer", "contact", "items", String(index)]} />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          const newItems = [...(data.footer?.contact?.items || [])];
-                          newItems.splice(index, 1);
-                          updateData(["footer", "contact", "items"], newItems);
+                      <ConfirmButton
+                        title="Remove contact item?"
+                        description="This will permanently remove the contact item."
+                        confirmText="Remove"
+                        onConfirm={() => {
+                          const newItems = [...(data.footer?.contact?.items || [])]
+                          newItems.splice(index, 1)
+                          updateData(["footer", "contact", "items"], newItems)
                         }}
-                        className="text-red-500"
                       >
-                        <X className="h-4 w-4" />
-                      </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-500"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </ConfirmButton>
                     </div>
                   ))}
                   <Button
@@ -1055,18 +1120,24 @@ export default function AdminPage() {
                         >
                           <ArrowDown className="h-4 w-4" />
                         </Button>
-                        <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          const newLegal = [...(data.footer?.legal || [])];
-                          newLegal.splice(index, 1);
-                          updateData(["footer", "legal"], newLegal);
-                        }}
-                        className="text-red-500"
-                      >
-                        <X className="h-4 w-4" />
-                        </Button>
+                        <ConfirmButton
+                          title="Remove legal link?"
+                          description="This will permanently remove the legal link."
+                          confirmText="Remove"
+                          onConfirm={() => {
+                            const newLegal = [...(data.footer?.legal || [])]
+                            newLegal.splice(index, 1)
+                            updateData(["footer", "legal"], newLegal)
+                          }}
+                        >
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-500"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </ConfirmButton>
                       </div>
                     </div>
                   ))}
@@ -1768,18 +1839,24 @@ export default function AdminPage() {
                           >
                             <ArrowDown className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
+                          <ConfirmButton
+                            title="Delete case study?"
+                            description="This will permanently delete the case study."
+                            confirmText="Delete"
+                            onConfirm={() => {
                               const newItems = [...(data.caseStudies?.items || [])]
                               newItems.splice(index, 1)
                               updateData(["caseStudies", "items"], newItems)
                             }}
-                            className="text-red-500"
                           >
-                            <X className="h-4 w-4" />
-                          </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-500"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </ConfirmButton>
                         </div>
                       </CardHeader>
                       {(caseItemExpanded[caseStudy?._id || caseStudy?.id || index] ?? caseExpandAll) && (
@@ -1904,20 +1981,26 @@ export default function AdminPage() {
                                     >
                                       <ArrowDown className="h-4 w-4" />
                                     </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => {
+                                    <ConfirmButton
+                                      title="Remove tag?"
+                                      description="This will permanently remove the tag."
+                                      confirmText="Remove"
+                                      onConfirm={() => {
                                         const newTags = [...(caseStudy.tags || [])]
                                         newTags.splice(tagIndex, 1)
                                         const newItems = [...(data.caseStudies?.items || [])]
                                         newItems[index] = { ...caseStudy, tags: newTags }
                                         updateData(["caseStudies", "items"], newItems)
                                       }}
+                                    >
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
                                       className="text-red-500"
                                     >
                                       <X className="h-4 w-4" />
                                     </Button>
+                                    </ConfirmButton>
                                   </div>
                                 ))}
                                 <Button
@@ -1992,20 +2075,26 @@ export default function AdminPage() {
                                     >
                                       <ArrowDown className="h-4 w-4" />
                                     </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => {
+                                    <ConfirmButton
+                                      title="Remove result?"
+                                      description="This will permanently remove the result."
+                                      confirmText="Remove"
+                                      onConfirm={() => {
                                         const newResults = [...(caseStudy.results || [])]
                                         newResults.splice(resIndex, 1)
                                         const newItems = [...(data.caseStudies?.items || [])]
                                         newItems[index] = { ...caseStudy, results: newResults }
                                         updateData(["caseStudies", "items"], newItems)
                                       }}
+                                    >
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
                                       className="text-red-500"
                                     >
                                       <X className="h-4 w-4" />
                                     </Button>
+                                    </ConfirmButton>
                                   </div>
                                 ))}
                                 <Button
