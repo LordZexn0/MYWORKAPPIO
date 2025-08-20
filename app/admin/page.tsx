@@ -523,7 +523,7 @@ function TagEditor({ tags, onChange, suggestions = [], label = "Tags", placehold
               }}
               placeholder={placeholder}
             />
-            {filteredSuggestions.length > 0 && (
+            {input.trim().length > 0 && filteredSuggestions.length > 0 && (
               <div className="absolute z-10 mt-1 w-full border bg-white shadow">
                 {filteredSuggestions.map((s) => (
                   <button
