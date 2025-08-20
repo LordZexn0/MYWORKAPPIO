@@ -31,7 +31,9 @@ import {
   BarChart3,
   ArrowRight,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react"
 import Image from "next/image"
 
@@ -154,6 +156,7 @@ interface CMSData {
     hero?: any
     items?: any[]
     stats?: {
+      title?: string
       items?: any[]
     }
     cta?: {
@@ -375,6 +378,8 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("site")
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null)
   const [sectionQuery, setSectionQuery] = useState("")
+  const [caseItemExpanded, setCaseItemExpanded] = useState<Record<string | number, boolean>>({})
+  const [caseExpandAll, setCaseExpandAll] = useState<boolean>(true)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -1684,77 +1689,63 @@ export default function AdminPage() {
                 <Separator />
 
                 <div className="space-y-6">
-                  <h3 className="text-lg font-semibold">Case Study Items</h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">Case Study Items</h3>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setCaseExpandAll(true)
+                          const next: Record<string | number, boolean> = {}
+                          ;(data.caseStudies?.items || []).forEach((it: any) => {
+                            const key = it?._id || it?.id
+                            if (key !== undefined) next[key] = true
+                          })
+                          setCaseItemExpanded(next)
+                        }}
+                      >
+                        Expand All
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setCaseExpandAll(false)
+                          const next: Record<string | number, boolean> = {}
+                          ;(data.caseStudies?.items || []).forEach((it: any) => {
+                            const key = it?._id || it?.id
+                            if (key !== undefined) next[key] = false
+                          })
+                          setCaseItemExpanded(next)
+                        }}
+                      >
+                        Collapse All
+                      </Button>
+                    </div>
+                  </div>
                   {data.caseStudies?.items?.map((caseStudy: any, index: number) => (
                     <Card key={caseStudy?._id || caseStudy?.id || index} className="border-l-4 border-l-green-500">
-                      <CardHeader>
-                        <CardTitle className="text-base">Case Study {index + 1}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                          <div className="space-y-4">
-                            <div>
-                              <Label>Case Study Title</Label>
-                              <Input
-                                value={caseStudy.title || ""}
-                                onChange={(e) => updateData(["caseStudies", "items", String(index), "title"], e.target.value)}
-                                placeholder="Case Study Title"
-                              />
-                            </div>
-                            <div>
-                              <Label>Client Name</Label>
-                              <Input
-                                value={caseStudy.client || ""}
-                                onChange={(e) => updateData(["caseStudies", "items", String(index), "client"], e.target.value)}
-                                placeholder="Client Company Name"
-                              />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <Label>Industry</Label>
-                                <Input
-                                  value={caseStudy.industry || ""}
-                                  onChange={(e) => updateData(["caseStudies", "items", String(index), "industry"], e.target.value)}
-                                  placeholder="Industry"
-                                />
-                              </div>
-                              <div>
-                                <Label>Location</Label>
-                                <Input
-                                  value={caseStudy.location || ""}
-                                  onChange={(e) => updateData(["caseStudies", "items", String(index), "location"], e.target.value)}
-                                  placeholder="Location"
-                                />
-                              </div>
-                            </div>
-                            <div>
-                              <Label>Challenge</Label>
-                              <Textarea
-                                value={caseStudy.challenge || ""}
-                                onChange={(e) => updateData(["caseStudies", "items", String(index), "challenge"], e.target.value)}
-                                placeholder="What challenges did the client face?"
-                                rows={3}
-                              />
-                            </div>
-                            <div>
-                              <Label>Solution</Label>
-                              <Textarea
-                                value={caseStudy.solution || ""}
-                                onChange={(e) => updateData(["caseStudies", "items", String(index), "solution"], e.target.value)}
-                                placeholder="How did we solve their problems?"
-                                rows={3}
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <ImageUpload
-                              currentImage={caseStudy.image}
-                              onImageChange={(url) => updateData(["caseStudies", "items", String(index), "image"], url)}
-                              label={`Case Study ${index + 1} Image`}
-                              description="Case study hero image (recommended: 600x400px)"
-                              aspectRatio="aspect-[3/2]"
-                            />
-                          </div>
+                      <CardHeader className="flex flex-row items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              const key = caseStudy?._id || caseStudy?.id || index
+                              const current = caseItemExpanded[key] ?? caseExpandAll
+                              setCaseItemExpanded({ ...caseItemExpanded, [key]: !current })
+                            }}
+                            title="Toggle"
+                          >
+                            {(caseItemExpanded[caseStudy?._id || caseStudy?.id || index] ?? caseExpandAll) ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <CardTitle className="text-base">Case Study {index + 1}</CardTitle>
                         </div>
                         <div className="flex gap-2">
                           <Button
@@ -1777,10 +1768,303 @@ export default function AdminPage() {
                           >
                             <ArrowDown className="h-4 w-4" />
                           </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const newItems = [...(data.caseStudies?.items || [])]
+                              newItems.splice(index, 1)
+                              updateData(["caseStudies", "items"], newItems)
+                            }}
+                            className="text-red-500"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      {(caseItemExpanded[caseStudy?._id || caseStudy?.id || index] ?? caseExpandAll) && (
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          <div className="space-y-4">
+                            <div>
+                              <Label>Case Study Title</Label>
+                              <Input
+                                value={caseStudy.title || ""}
+                                onChange={(e) => updateData(["caseStudies", "items", String(index), "title"], e.target.value)}
+                                placeholder="Case Study Title"
+                              />
+                            </div>
+                            <div>
+                              <Label>Client Name</Label>
+                              <Input
+                                value={caseStudy.client || ""}
+                                onChange={(e) => updateData(["caseStudies", "items", String(index), "client"], e.target.value)}
+                                placeholder="Client Company Name"
+                              />
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                              <div>
+                                <Label>Industry</Label>
+                                <Input
+                                  value={caseStudy.industry || ""}
+                                  onChange={(e) => updateData(["caseStudies", "items", String(index), "industry"], e.target.value)}
+                                  placeholder="Industry"
+                                />
+                              </div>
+                              <div>
+                                <Label>Location</Label>
+                                <Input
+                                  value={caseStudy.location || ""}
+                                  onChange={(e) => updateData(["caseStudies", "items", String(index), "location"], e.target.value)}
+                                  placeholder="Location"
+                                />
+                              </div>
+                              <div>
+                                <Label>Date</Label>
+                                <Input
+                                  value={caseStudy.date || ""}
+                                  onChange={(e) => updateData(["caseStudies", "items", String(index), "date"], e.target.value)}
+                                  placeholder="2024"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <Label>Challenge</Label>
+                              <Textarea
+                                value={caseStudy.challenge || ""}
+                                onChange={(e) => updateData(["caseStudies", "items", String(index), "challenge"], e.target.value)}
+                                placeholder="What challenges did the client face?"
+                                rows={3}
+                              />
+                            </div>
+                            <div>
+                              <Label>Solution</Label>
+                              <Textarea
+                                value={caseStudy.solution || ""}
+                                onChange={(e) => updateData(["caseStudies", "items", String(index), "solution"], e.target.value)}
+                                placeholder="How did we solve their problems?"
+                                rows={3}
+                              />
+                            </div>
+                            <div>
+                              <Label>Tags</Label>
+                              <div className="space-y-2">
+                                {(caseStudy.tags || []).map((tag: string, tagIndex: number) => (
+                                  <div key={`${tagIndex}-${tag ?? ''}`} className="flex gap-2 items-center">
+                                    <Input
+                                      value={tag || ""}
+                                      onChange={(e) => {
+                                        const newTags = [...(caseStudy.tags || [])]
+                                        newTags[tagIndex] = e.target.value
+                                        const newItems = [...(data.caseStudies?.items || [])]
+                                        newItems[index] = { ...caseStudy, tags: newTags }
+                                        updateData(["caseStudies", "items"], newItems)
+                                      }}
+                                      placeholder="e.g., Logistics"
+                                    />
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => {
+                                        const newTags = [...(caseStudy.tags || [])]
+                                        const from = tagIndex
+                                        const to = Math.max(0, tagIndex - 1)
+                                        if (from !== to) {
+                                          const [m] = newTags.splice(from, 1)
+                                          newTags.splice(to, 0, m)
+                                          const newItems = [...(data.caseStudies?.items || [])]
+                                          newItems[index] = { ...caseStudy, tags: newTags }
+                                          updateData(["caseStudies", "items"], newItems)
+                                        }
+                                      }}
+                                      disabled={tagIndex === 0}
+                                      title="Move up"
+                                    >
+                                      <ArrowUp className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => {
+                                        const newTags = [...(caseStudy.tags || [])]
+                                        const from = tagIndex
+                                        const to = Math.min((caseStudy.tags?.length || 1) - 1, tagIndex + 1)
+                                        if (from !== to) {
+                                          const [m] = newTags.splice(from, 1)
+                                          newTags.splice(to, 0, m)
+                                          const newItems = [...(data.caseStudies?.items || [])]
+                                          newItems[index] = { ...caseStudy, tags: newTags }
+                                          updateData(["caseStudies", "items"], newItems)
+                                        }
+                                      }}
+                                      disabled={tagIndex === (caseStudy.tags?.length || 1) - 1}
+                                      title="Move down"
+                                    >
+                                      <ArrowDown className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        const newTags = [...(caseStudy.tags || [])]
+                                        newTags.splice(tagIndex, 1)
+                                        const newItems = [...(data.caseStudies?.items || [])]
+                                        newItems[index] = { ...caseStudy, tags: newTags }
+                                        updateData(["caseStudies", "items"], newItems)
+                                      }}
+                                      className="text-red-500"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                ))}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    const newTags = [...(caseStudy.tags || []), ""]
+                                    const newItems = [...(data.caseStudies?.items || [])]
+                                    newItems[index] = { ...caseStudy, tags: newTags }
+                                    updateData(["caseStudies", "items"], newItems)
+                                  }}
+                                >
+                                  Add Tag
+                                </Button>
+                              </div>
+                            </div>
+                            <div>
+                              <Label>Key Results</Label>
+                              <div className="space-y-2">
+                                {(caseStudy.results || []).map((res: string, resIndex: number) => (
+                                  <div key={`${resIndex}-${res ?? ''}`} className="flex gap-2 items-center">
+                                    <Input
+                                      value={res || ""}
+                                      onChange={(e) => {
+                                        const newResults = [...(caseStudy.results || [])]
+                                        newResults[resIndex] = e.target.value
+                                        const newItems = [...(data.caseStudies?.items || [])]
+                                        newItems[index] = { ...caseStudy, results: newResults }
+                                        updateData(["caseStudies", "items"], newItems)
+                                      }}
+                                      placeholder="e.g., 40% cost reduction"
+                                    />
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => {
+                                        const newResults = [...(caseStudy.results || [])]
+                                        const from = resIndex
+                                        const to = Math.max(0, resIndex - 1)
+                                        if (from !== to) {
+                                          const [m] = newResults.splice(from, 1)
+                                          newResults.splice(to, 0, m)
+                                          const newItems = [...(data.caseStudies?.items || [])]
+                                          newItems[index] = { ...caseStudy, results: newResults }
+                                          updateData(["caseStudies", "items"], newItems)
+                                        }
+                                      }}
+                                      disabled={resIndex === 0}
+                                      title="Move up"
+                                    >
+                                      <ArrowUp className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => {
+                                        const newResults = [...(caseStudy.results || [])]
+                                        const from = resIndex
+                                        const to = Math.min((caseStudy.results?.length || 1) - 1, resIndex + 1)
+                                        if (from !== to) {
+                                          const [m] = newResults.splice(from, 1)
+                                          newResults.splice(to, 0, m)
+                                          const newItems = [...(data.caseStudies?.items || [])]
+                                          newItems[index] = { ...caseStudy, results: newResults }
+                                          updateData(["caseStudies", "items"], newItems)
+                                        }
+                                      }}
+                                      disabled={resIndex === (caseStudy.results?.length || 1) - 1}
+                                      title="Move down"
+                                    >
+                                      <ArrowDown className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        const newResults = [...(caseStudy.results || [])]
+                                        newResults.splice(resIndex, 1)
+                                        const newItems = [...(data.caseStudies?.items || [])]
+                                        newItems[index] = { ...caseStudy, results: newResults }
+                                        updateData(["caseStudies", "items"], newItems)
+                                      }}
+                                      className="text-red-500"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                ))}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    const newResults = [...(caseStudy.results || []), ""]
+                                    const newItems = [...(data.caseStudies?.items || [])]
+                                    newItems[index] = { ...caseStudy, results: newResults }
+                                    updateData(["caseStudies", "items"], newItems)
+                                  }}
+                                >
+                                  Add Result
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                          <div>
+                            <ImageUpload
+                              currentImage={caseStudy.image}
+                              onImageChange={(url) => updateData(["caseStudies", "items", String(index), "image"], url)}
+                              label={`Case Study ${index + 1} Image`}
+                              description="Case study hero image (recommended: 600x400px)"
+                              aspectRatio="aspect-[3/2]"
+                            />
+                          </div>
                         </div>
                       </CardContent>
+                      )}
                     </Card>
                   ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const items = [...(data.caseStudies?.items || [])]
+                      const nextId = items.reduce((max, it) => {
+                        const val = typeof it?.id === 'number' ? it.id : Number(it?.id) || 0
+                        return Math.max(max, val)
+                      }, 0) + 1
+                      const newItem = {
+                        _id: generateId(),
+                        id: nextId,
+                        title: "",
+                        client: "",
+                        industry: "",
+                        location: "",
+                        date: "",
+                        challenge: "",
+                        solution: "",
+                        results: [],
+                        image: "",
+                        tags: []
+                      }
+                      updateData(["caseStudies", "items"], [...items, newItem])
+                    }}
+                  >
+                    Add Case Study
+                  </Button>
                 </div>
 
                 <Separator />
@@ -1788,6 +2072,15 @@ export default function AdminPage() {
                 {/* Stats Section */}
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold">Stats Section</h3>
+                  <div>
+                    <Label htmlFor="caseStudiesStatsTitle">Stats Title</Label>
+                    <Input
+                      id="caseStudiesStatsTitle"
+                      value={data.caseStudies?.stats?.title || ""}
+                      onChange={(e) => updateData(["caseStudies", "stats", "title"], e.target.value)}
+                      placeholder="Proven Results Across Industries"
+                    />
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {(data.caseStudies?.stats?.items || []).map((stat: any, index: number) => (
                       <div key={stat?._id || index} className="space-y-2">
@@ -1842,10 +2135,32 @@ export default function AdminPage() {
                           >
                             <ArrowDown className="h-4 w-4" />
                           </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const newStats = [...(data.caseStudies?.stats?.items || [])];
+                              newStats.splice(index, 1);
+                              updateData(["caseStudies", "stats", "items"], newStats);
+                            }}
+                            className="text-red-500"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     ))}
                   </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newStats = [...(data.caseStudies?.stats?.items || []), { _id: generateId(), number: "", label: "", color: "" }];
+                      updateData(["caseStudies", "stats", "items"], newStats);
+                    }}
+                  >
+                    Add Stat
+                  </Button>
                 </div>
 
                 <Separator />
