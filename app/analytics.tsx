@@ -1,7 +1,7 @@
 "use client"
 
-// Privacy-focused analytics component - no tracking
+import { Analytics as VercelAnalytics } from "@vercel/analytics/react"
+
 export default function Analytics() {
-  // No tracking code - privacy first
-  return null
+  return <VercelAnalytics />
 }
