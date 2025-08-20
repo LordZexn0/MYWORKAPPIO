@@ -427,6 +427,128 @@ function ConfirmButton({
   )
 }
 
+interface TagEditorProps {
+  tags: string[]
+  onChange: (next: string[]) => void
+  suggestions?: string[]
+  label?: string
+  placeholder?: string
+}
+
+function TagEditor({ tags, onChange, suggestions = [], label = "Tags", placeholder = "Add a tag and press Enter" }: TagEditorProps) {
+  const [input, setInput] = useState("")
+
+  const normalized = (t: string) => t.trim().replace(/\s+/g, " ")
+
+  const addTag = (raw: string) => {
+    const t = normalized(raw)
+    if (!t) return
+    const exists = tags.some((x) => x.toLowerCase() === t.toLowerCase())
+    if (exists) {
+      setInput("")
+      return
+    }
+    onChange([...tags, t])
+    setInput("")
+  }
+
+  const removeTag = (index: number) => {
+    const next = [...tags]
+    next.splice(index, 1)
+    onChange(next)
+  }
+
+  const moveTag = (from: number, to: number) => {
+    if (from === to || from < 0 || to < 0 || from >= tags.length || to >= tags.length) return
+    const next = [...tags]
+    const [m] = next.splice(from, 1)
+    next.splice(to, 0, m)
+    onChange(next)
+  }
+
+  const filteredSuggestions = suggestions
+    .filter(Boolean)
+    .filter((s) => s.toLowerCase().includes(input.toLowerCase()))
+    .filter((s) => !tags.some((t) => t.toLowerCase() === s.toLowerCase()))
+    .slice(0, 8)
+
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <div className="flex flex-wrap gap-2">
+        {tags.map((tag, idx) => (
+          <div key={`${idx}-${tag}`} className="flex items-center gap-1 bg-gray-100 px-2 py-1 text-sm">
+            <span>{tag}</span>
+            <div className="flex">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => moveTag(idx, Math.max(0, idx - 1))}
+                disabled={idx === 0}
+                title="Move up"
+              >
+                <ArrowUp className="h-3 w-3" />
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => moveTag(idx, Math.min(tags.length - 1, idx + 1))}
+                disabled={idx === tags.length - 1}
+                title="Move down"
+              >
+                <ArrowDown className="h-3 w-3" />
+              </Button>
+              <ConfirmButton
+                title="Remove tag?"
+                description="This will remove the tag from this item."
+                confirmText="Remove"
+                onConfirm={() => removeTag(idx)}
+              >
+                <Button type="button" variant="ghost" size="sm" className="text-red-500">
+                  <X className="h-3 w-3" />
+                </Button>
+              </ConfirmButton>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="relative">
+        <Input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ',') {
+              e.preventDefault()
+              addTag(input)
+            }
+            if (e.key === 'Backspace' && !input && tags.length > 0) {
+              // quick-remove last
+              removeTag(tags.length - 1)
+            }
+          }}
+          placeholder={placeholder}
+        />
+        {filteredSuggestions.length > 0 && (
+          <div className="absolute z-10 mt-1 w-full border bg-white shadow">
+            {filteredSuggestions.map((s) => (
+              <button
+                key={s}
+                type="button"
+                className="block w-full text-left px-3 py-2 hover:bg-gray-50"
+                onClick={() => addTag(s)}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function AdminPage() {
   const [data, setData] = useState<CMSData | null>(null)
   const [originalData, setOriginalData] = useState<CMSData | null>(null)
@@ -1928,98 +2050,15 @@ export default function AdminPage() {
                               />
                             </div>
                             <div>
-                              <Label>Tags</Label>
-                              <div className="space-y-2">
-                                {(caseStudy.tags || []).map((tag: string, tagIndex: number) => (
-                                  <div key={`${tagIndex}-${tag ?? ''}`} className="flex gap-2 items-center">
-                                    <Input
-                                      value={tag || ""}
-                                      onChange={(e) => {
-                                        const newTags = [...(caseStudy.tags || [])]
-                                        newTags[tagIndex] = e.target.value
-                                        const newItems = [...(data.caseStudies?.items || [])]
-                                        newItems[index] = { ...caseStudy, tags: newTags }
-                                        updateData(["caseStudies", "items"], newItems)
-                                      }}
-                                      placeholder="e.g., Logistics"
-                                    />
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="icon"
-                                      onClick={() => {
-                                        const newTags = [...(caseStudy.tags || [])]
-                                        const from = tagIndex
-                                        const to = Math.max(0, tagIndex - 1)
-                                        if (from !== to) {
-                                          const [m] = newTags.splice(from, 1)
-                                          newTags.splice(to, 0, m)
-                                          const newItems = [...(data.caseStudies?.items || [])]
-                                          newItems[index] = { ...caseStudy, tags: newTags }
-                                          updateData(["caseStudies", "items"], newItems)
-                                        }
-                                      }}
-                                      disabled={tagIndex === 0}
-                                      title="Move up"
-                                    >
-                                      <ArrowUp className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="icon"
-                                      onClick={() => {
-                                        const newTags = [...(caseStudy.tags || [])]
-                                        const from = tagIndex
-                                        const to = Math.min((caseStudy.tags?.length || 1) - 1, tagIndex + 1)
-                                        if (from !== to) {
-                                          const [m] = newTags.splice(from, 1)
-                                          newTags.splice(to, 0, m)
-                                          const newItems = [...(data.caseStudies?.items || [])]
-                                          newItems[index] = { ...caseStudy, tags: newTags }
-                                          updateData(["caseStudies", "items"], newItems)
-                                        }
-                                      }}
-                                      disabled={tagIndex === (caseStudy.tags?.length || 1) - 1}
-                                      title="Move down"
-                                    >
-                                      <ArrowDown className="h-4 w-4" />
-                                    </Button>
-                                    <ConfirmButton
-                                      title="Remove tag?"
-                                      description="This will permanently remove the tag."
-                                      confirmText="Remove"
-                                      onConfirm={() => {
-                                        const newTags = [...(caseStudy.tags || [])]
-                                        newTags.splice(tagIndex, 1)
-                                        const newItems = [...(data.caseStudies?.items || [])]
-                                        newItems[index] = { ...caseStudy, tags: newTags }
-                                        updateData(["caseStudies", "items"], newItems)
-                                      }}
-                                    >
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="text-red-500"
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
-                                    </ConfirmButton>
-                                  </div>
-                                ))}
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    const newTags = [...(caseStudy.tags || []), ""]
-                                    const newItems = [...(data.caseStudies?.items || [])]
-                                    newItems[index] = { ...caseStudy, tags: newTags }
-                                    updateData(["caseStudies", "items"], newItems)
-                                  }}
-                                >
-                                  Add Tag
-                                </Button>
-                              </div>
+                              <TagEditor
+                                tags={caseStudy.tags || []}
+                                onChange={(next) => {
+                                  const newItems = [...(data.caseStudies?.items || [])]
+                                  newItems[index] = { ...caseStudy, tags: next }
+                                  updateData(["caseStudies", "items"], newItems)
+                                }}
+                                suggestions={["Logistics","IoT","Warehouse Management","Automation","Healthcare","Scalability","Integration"]}
+                              />
                             </div>
                             <div>
                               <Label>Key Results</Label>
@@ -3046,6 +3085,20 @@ export default function AdminPage() {
                               rows={3}
                             />
                           </div>
+                          <div>
+                            <TagEditor
+                              label="Tags"
+                              tags={post.tags || []}
+                              onChange={(next) => {
+                                const newPosts = [...(data.blog?.posts || [])]
+                                newPosts[index] = { ...post, tags: next }
+                                updateData(["blog", "posts"], newPosts)
+                              }}
+                              suggestions={[
+                                "Supply Chain","IoT Technology","Digital Transformation","Automation","Implementation","ROI Analysis","Best Practices","Warehousing","Logistics"
+                              ]}
+                            />
+                          </div>
                           <div className="flex items-center space-x-4">
                             <div className="flex items-center space-x-2">
                               <input
@@ -3102,7 +3155,8 @@ export default function AdminPage() {
                         category: "",
                         image: "",
                         featured: false,
-                        content: ""
+                        content: "",
+                        tags: []
                       };
                       updateData(["blog", "posts"], [...(data.blog?.posts || []), newPost]);
                     }}
