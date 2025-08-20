@@ -391,10 +391,12 @@ function ConfirmButton({
   title?: string
   description?: string
   confirmText?: string
-  onConfirm: () => void
+  onConfirm: () => void | Promise<void>
 }) {
+  const [open, setOpen] = useState(false)
+
   return (
-    <AlertDialog>
+    <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         {children}
       </AlertDialogTrigger>
@@ -406,8 +408,17 @@ function ConfirmButton({
           ) : null}
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} className="bg-red-600 hover:bg-red-700">
+          <AlertDialogCancel onClick={() => setOpen(false)}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={async () => {
+              try {
+                await onConfirm()
+              } finally {
+                setOpen(false)
+              }
+            }}
+            className="bg-red-600 hover:bg-red-700"
+          >
             {confirmText}
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -529,14 +540,7 @@ export default function AdminPage() {
     return () => window.removeEventListener("keydown", onKeyDown)
   }, [dirty, saving, handleSave])
 
-  // Debounced autosave after inactivity when there are unsaved changes
-  useEffect(() => {
-    if (!dirty || saving) return
-    const timeoutId = window.setTimeout(() => {
-      void handleSave({ silent: true })
-    }, 2000)
-    return () => window.clearTimeout(timeoutId)
-  }, [dirty, saving, handleSave])
+  // Removed autosave on inactivity per request
 
   const updateData = (path: string[], value: any) => {
     if (!data) return
