@@ -3,6 +3,9 @@ import fs from "fs"
 import path from "path"
 
 export async function GET() {
+  if (process.env.ALLOW_DEBUG_ROUTES !== '1') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
   try {
     console.log("📁 File Test: Starting...")
     

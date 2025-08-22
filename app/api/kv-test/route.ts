@@ -18,6 +18,9 @@ function getRedisClient(): Redis | null {
 }
 
 export async function GET() {
+  if (process.env.ALLOW_DEBUG_ROUTES !== '1') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
   // During build time, return a static response to avoid external requests
   if (process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === 'production') {
     return NextResponse.json({
